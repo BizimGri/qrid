@@ -1,4 +1,22 @@
+# Tüm trafiği index.php'ye yönlendir
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?$1 [L,QSA]
+RewriteRule ^ index.php [QSA,L]
+
+# PHP Hata Gösterimini Kapat
+#php_flag display_errors Off
+#php_flag log_errors On
+#php_value error_log "Storage/Logs/php_error.log"
+
+#Halihazırda sunucu tarafında ayarlı olduğu için yorum olarak bırakıldı
+
+# HTTPS yönlendirmesi
+#RewriteCond %{HTTPS} off
+#RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Hassas dosyalara erişimi engelle
+#<FilesMatch "^\.">
+#    Order Allow,Deny
+#    Deny from all
+#</FilesMatch>
