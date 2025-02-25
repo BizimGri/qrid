@@ -3,10 +3,12 @@
 class MainController
 {
     protected $model;
+    protected $params;
 
     public function __construct($model)
     {
         $this->model = $model;
+        $this->params = getRequestParams();
     }
 
     public function index()

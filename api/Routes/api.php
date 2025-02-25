@@ -1,11 +1,18 @@
 <?php
 
-require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
-require_once __DIR__ . '/../Controllers/UserController.php';
+//require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
+//require_once __DIR__ . '/../Middlewares/RequestValidator.php';
 
 // Middleware'leri çalıştır (route eşleşmesinden önce) 
 //$middleware = new AuthMiddleware();
-//$middleware->handle(); 
+//$middleware->handle();
+// Gelen POST ve PUT isteklerinin JSON olup olmadığını kontrol et
+//$validator = new RequestValidator();
+//$validator->validate();
+
+require_once __DIR__ . '/../Controllers/MainController.php';
+require_once __DIR__ . '/../Controllers/UserController.php';
+require_once __DIR__ . '/../Controllers/PersonController.php';
 
 // Rotaları list.php'den yükle
 $routes = require_once __DIR__ . '/../Routes/list.php';

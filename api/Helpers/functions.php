@@ -44,3 +44,49 @@ function sanitizeId($id)
     }
     return $id;
 }
+
+
+/**
+ * Retrieves parameters from GET, POST, PUT, and DELETE requests.
+ *
+ * @return array The array of parameters based on the request method.
+ * @example getRequestParams(); // Returns an array of parameters
+ */
+function getRequestParams()
+{
+    $params = [];
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    switch ($method) {
+        case 'GET':
+            $params = $_GET;
+            break;
+        case 'POST':
+            $params = !empty($_POST) ? $_POST : getPhpInputs();
+            break;
+        case 'PUT':
+        case 'DELETE':
+            $params = getPhpInputs();
+            break;
+        default:
+            response([], 405, 'Method Not Allowed');
+    }
+
+    return $params;
+}
+
+/**
+ * Retrieves raw parameters from the request body.
+ *
+ * @return array The array of raw parameters.
+ * @example getPhpInputs(); // Returns an array of raw parameters
+ */
+function getPhpInputs() : array {
+    $inputs = [];
+    $php_input = file_get_contents("php://input");
+    $inputs = json_decode($php_input, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        parse_str($php_input, $inputs);
+    }
+    return $inputs;
+}
