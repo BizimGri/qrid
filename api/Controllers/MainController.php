@@ -18,7 +18,8 @@ class MainController
 
     public function getById($id)
     {
-        $this->model->getById($id) ? response($this->model->getById($id)) : response(NULL, 404, "Not Found");
+        $result = $this->model->getById($id);
+        $result ? response($result) : response(NULL, 404, "Not Found");
     }
 
     public function store($data)

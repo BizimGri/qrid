@@ -28,20 +28,20 @@ class MainModel
         }
     }
 
-    public function getAll()
+    public function getAll($columns = "*")
     {
-        $stmt = $this->pdo->query("SELECT * FROM {$this->table}");
+        $stmt = $this->pdo->query("SELECT {$columns} FROM {$this->table}");
         return $stmt->fetchAll();
     }
 
-    public function getById($id)
+    public function getById($id, $columns = "*")
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM {$this->table} WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT {$columns} FROM {$this->table} WHERE id = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
 
-    public function create(array $data)
+    public function create(array $data, $returnData = true)
     {
         $columns = implode(", ", array_keys($data));
         $placeholders = ":" . implode(", :", array_keys($data));
@@ -52,11 +52,14 @@ class MainModel
             return false;
         }
 
-        $lastId = $this->pdo->lastInsertId();
-        return $this->getById($lastId);
+        if ($returnData) {
+            $lastId = $this->pdo->lastInsertId();
+            return $this->getById($lastId);
+        }
+        return true;
     }
 
-    public function update($id, array $data)
+    public function update($id, array $data, $returnData = true)
     {
         $setClause = implode(", ", array_map(fn($key) => "$key = :$key", array_keys($data)));
 
@@ -67,7 +70,7 @@ class MainModel
             return false;
         }
 
-        return $this->getById($id);
+        return $returnData ? $this->getById($id) : true;
     }
 
     public function delete($id)
@@ -105,12 +108,11 @@ class MainModel
     {
         $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
         $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE $whereClause";
-
+        
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($conditions);
 
         return $stmt->fetch()['count'] > 0;
     }
-    
-    
+
 }

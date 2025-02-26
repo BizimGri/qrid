@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__.'/MainModel.php';
 
 class PersonModel extends MainModel
@@ -8,4 +9,5 @@ class PersonModel extends MainModel
     function __construct() {
         parent::__construct();
     }
+    
 }
