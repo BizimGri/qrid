@@ -1,8 +1,7 @@
 {
-    "lang": "keys-values",
     "accessTypes": {
-        "1": "public",
-        "0": "private"
+        "0": "private",
+        "1": "public"
     },
     "accessLevels": {
         "1": "access_level_1",
@@ -29,7 +28,7 @@
         "utilities",
         "insurance",
         "travel",
-        "fitness",
+        "physical_fitness",
         "hobbies",
         "relationships",
         "pets",

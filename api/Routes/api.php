@@ -8,8 +8,6 @@ require_once __DIR__ . '/../Controllers/MainController.php';
 require_once __DIR__ . '/../Controllers/PersonController.php';
 require_once __DIR__ . '/../Controllers/DataController.php';
 
-Constants::load();
-
 // Load routes from list.php
 $routes = require_once __DIR__ . '/../Routes/list.php';
 
