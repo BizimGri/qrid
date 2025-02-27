@@ -1,9 +1,11 @@
 <?php
 
-require_once __DIR__.'/../Helpers/jwtHandler.php';
+require_once __DIR__.'/../Helpers/JwtHandler.php';
 
 class AuthMiddleware
 {
+    public static $person;
+
     public static function handle()
     {
         self::authenticate(); // Giriş kontrolü yap
@@ -22,6 +24,6 @@ class AuthMiddleware
             response(NULL, 401, "Unauthorized: Invalid or expired token.");
         }
 
-        return (array) $decoded; // Kullanıcı bilgilerini döndür
+        self::$person = (array) $decoded; // Kullanıcı bilgilerini döndür
     }
 }

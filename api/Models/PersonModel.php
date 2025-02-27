@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/MainModel.php';
+require_once __DIR__ . '/MainModel.php';
 
 class PersonModel extends MainModel
 {

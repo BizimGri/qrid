@@ -136,7 +136,7 @@ function checkRequiredParams(array $requiredParams, array $data)
     }
 
     // E-posta doğrulaması
-    if (!validateEmail($data["email"])) {
+    if (isset($data["email"]) && !validateEmail($data["email"])) {
         response(['email' => $data["email"]], 400, 'Invalid email format');
     }
 
