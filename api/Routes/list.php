@@ -2,13 +2,17 @@
 
 return [
 
-    "publicRoutes" => [
-        "login",
-        "register",
-        "forgot-password"
+    'publicRoutes' => [
+        'POST' => [
+            'person' => [
+                'login',
+                'register',
+                'forgot-password'
+            ]
+        ]
     ],
 
-    "apiRoutes" => [
+    'apiRoutes' => [
         'GET' => [
             'users'  => [                                           // Static route and data for testing
                 ''       => ['UserController', 'index'],            // GET /users

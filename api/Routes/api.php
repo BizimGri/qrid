@@ -1,14 +1,9 @@
 <?php
+// For Testing
+require_once __DIR__ . '/../Controllers/UserController.php';
 
 require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
-
-//require_once __DIR__ . '/../Middlewares/RequestValidator.php';
-// Check if incoming POST and PUT requests are JSON
-//$validator = new RequestValidator();
-//$validator->validate();
-
 require_once __DIR__ . '/../Controllers/MainController.php';
-require_once __DIR__ . '/../Controllers/UserController.php';
 require_once __DIR__ . '/../Controllers/PersonController.php';
 
 // Load routes from list.php
@@ -36,7 +31,7 @@ function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
     $baseRoute = $uriSegments[0] ?? '';
 
     // If it's not a public route, run AuthMiddleware
-    if (!in_array($uriSegments[1] ?? '', $publicRoutes)) {
+    if (!in_array($uriSegments[1] ?? '', $publicRoutes[$requestMethod][$baseRoute])) {
         AuthMiddleware::handle();
     }
 
