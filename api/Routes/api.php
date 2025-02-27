@@ -1,12 +1,9 @@
 <?php
 
-//require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
-//require_once __DIR__ . '/../Middlewares/RequestValidator.php';
+require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
 
-// Middleware'leri çalıştır (route eşleşmesinden önce) 
-//$middleware = new AuthMiddleware();
-//$middleware->handle();
-// Gelen POST ve PUT isteklerinin JSON olup olmadığını kontrol et
+//require_once __DIR__ . '/../Middlewares/RequestValidator.php';
+// Check if incoming POST and PUT requests are JSON
 //$validator = new RequestValidator();
 //$validator->validate();
 
@@ -14,66 +11,71 @@ require_once __DIR__ . '/../Controllers/MainController.php';
 require_once __DIR__ . '/../Controllers/UserController.php';
 require_once __DIR__ . '/../Controllers/PersonController.php';
 
-// Rotaları list.php'den yükle
+// Load routes from list.php
 $routes = require_once __DIR__ . '/../Routes/list.php';
 
-// İstek URL'sini ve metodunu al
+// Get request URL and method
 $requestUri = trim(substr(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), 5), '/'); // /api/users/1 -> users/1  & /api/users/ -> users & /api/ -> ''
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-// 🛠 Yardımcı Fonksiyon: Route eşleştirme
-function matchRoute($requestUri, $requestMethod, $routes)
+// 🛠 Helper Function: Route matching
+function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
 {
-    // Eğer request URI tamamen boşsa
+    // If request URI is completely empty
     if (empty($requestUri)) {
         response(NULL, 418, 'Welcome To The Desert Of The Real!');
     }
 
-    // Geçerli HTTP metodunu kontrol et
-    if (!isset($routes[$requestMethod])) {
+    // Check the valid HTTP method
+    if (!isset($apiRoutes[$requestMethod])) {
         return null;
     }
 
-    // URL parçalarına ayır // şimdilik sadece 0 (baseRoute) ve 1 (subRoute/id) inci parçaları kullanıyoruz
+    // Split URL into segments // for now, we only use 0 (baseRoute) and 1 (subRoute/id) parts
     $uriSegments = explode('/', $requestUri);
     $baseRoute = $uriSegments[0] ?? '';
 
-    // Ana rota (ör: users, images) bulunamıyorsa 404
-    if (!isset($routes[$requestMethod][$baseRoute])) {
+    // If it's not a public route, run AuthMiddleware
+    if (!in_array($uriSegments[1] ?? '', $publicRoutes)) {
+        AuthMiddleware::handle();
+    }
+
+    // If the main route (e.g., users, images) is not found, return 404
+    if (!isset($apiRoutes[$requestMethod][$baseRoute])) {
         return null;
     }
 
-    // Alt rotaları al
-    $subRoutes = $routes[$requestMethod][$baseRoute];
+    // Get sub-routes
+    $subRoutes = $apiRoutes[$requestMethod][$baseRoute];
     $subPath = $uriSegments[1] ?? null; // users/{id} -> {id}
 
-    // Doğrudan eşleşme varsa
+    // If there is a direct match
     if ($subPath === null && isset($subRoutes[''])) {
-        return [$subRoutes[''], []]; // /users gibi bir istek
+        return [$subRoutes[''], []]; // A request like /users
     }
 
-    // Önce sabit tanımlı yolları kontrol et (ÖRN: users/kampanya)
+    // First, check for statically defined paths (e.g., users/campaign)
     if ($subPath !== null && isset($subRoutes[$subPath])) {
         return [$subRoutes[$subPath], []];
     }
 
-    // Eğer users/{id} gibi bir yapıdaysa, ID'yi doğrudan al
+    // If it's in the form of users/{id}, directly get the ID
     if ($subPath !== null && isset($subRoutes['{id}'])) {
-        $cleanId = sanitizeId($subPath); // Güvenli hale getir
+        $cleanId = sanitizeId($subPath); // Make it safe
         return [$subRoutes['{id}'], [$cleanId]];
     }
 
     return null;
 }
 
-// Rota eşleşmesini kontrol et
-$matchedRoute = matchRoute($requestUri, $requestMethod, $routes);
+// Check for route matching
+$matchedRoute = matchRoute($requestUri, $requestMethod, $routes["apiRoutes"], $routes["publicRoutes"]);
 
 if ($matchedRoute) {
     [$action, $params] = $matchedRoute;
     [$controller, $method] = $action;
 
-    // Controller'ı çağır ve parametreleri ilet
+    // Call the controller and pass the parameters
     $controllerInstance = new $controller();
     $controllerInstance->$method(...$params);
 } else {

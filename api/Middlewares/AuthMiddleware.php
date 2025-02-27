@@ -1,24 +1,27 @@
 <?php
 
-class AuthMiddleware // JWT işlemleri için düzenlenecek
+require_once __DIR__.'/../Helpers/jwtHandler.php';
+
+class AuthMiddleware
 {
-    public function handle()
+    public static function handle()
     {
-        // Token doğrulama
-        if (!$this->checkAuth()) { // login işleminde de Auth kontrol edilip istek türü login ise kontrol atlanacak.
-            http_response_code(401);
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
+        self::authenticate(); // Giriş kontrolü yap
     }
 
-    private function checkAuth()
+    private static function authenticate()
     {
-        // Örnek: Authorization Header kontrolü
-        $headers = getallheaders();
-        if (!isset($headers['Authorization']) || $headers['Authorization'] !== 'Bearer valid_token') {
-            return false;
+        if (!isset($_COOKIE['jwt_token'])) {
+            response(NULL, 401, "Unauthorized: Missing token.");
         }
-        return true;
+
+        $token = $_COOKIE['jwt_token'];
+        $decoded = JwtHandler::decode($token);
+
+        if (!$decoded) {
+            response(NULL, 401, "Unauthorized: Invalid or expired token.");
+        }
+
+        return (array) $decoded; // Kullanıcı bilgilerini döndür
     }
 }

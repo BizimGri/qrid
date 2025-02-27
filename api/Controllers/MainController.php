@@ -11,6 +11,7 @@ class MainController
         $this->params = getRequestParams();
     }
 
+    // Bu fonksiyonlar tekrar eden işlemleri kısaltmak için kullanılabilir ya da kaldırılacak!
     public function index()
     {
         response($this->model->getAll());

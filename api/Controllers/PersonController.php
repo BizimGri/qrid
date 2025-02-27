@@ -38,6 +38,37 @@ class PersonController extends MainController
     }
 
     function login() {
-        response(["OK" => "login"]);
+        require_once __DIR__ . '/../Helpers/jwtHandler.php';
+
+        checkRequiredParams(['email', 'password'], $this->params);
+
+        if (!$this->model->exists(["email" => $this->params['email']])) {
+            response(NULL, 404, "Person not found.");
+        }
+
+        $person = $this->model->getWhere(["email" => $this->params['email']], "id, name, email, password");
+
+        if (!verifyPassword($this->params['password'], $person[0]['password'])) {
+            response(NULL, 401, "Invalid login credentials.");
+        }
+
+        $payload = [
+            'id' => $person[0]['id'],
+            'name' => $person[0]['name'],
+            'email' => $person[0]['email'],
+            'exp' => time() + (60 * 60 * 24) // Token will be valid for 24 hours
+        ];
+
+        $jwt = JwtHandler::encode($payload);
+
+        setcookie("jwt_token", $jwt, [
+            "expires" => time() + 86400,
+            "path" => "/",
+            "httponly" => true,  // Disable JavaScript access
+            "secure" => true,    // Require HTTPS
+            "samesite" => "Strict"
+        ]);
+
+        response(NULL, 200, "Login successful.");
     }
 }

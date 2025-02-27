@@ -79,10 +79,10 @@ class MainModel
         return $stmt->execute(['id' => $id]);
     }
 
-    public function getWhere(array $conditions, $orderBy = null, $limit = null)
+    public function getWhere(array $conditions, string $columns = "*", $orderBy = null, $limit = null)
     {
         $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
-        $sql = "SELECT * FROM {$this->table} WHERE $whereClause";
+        $sql = "SELECT {$columns} FROM {$this->table} WHERE $whereClause";
 
         if ($orderBy) {
             $sql .= " ORDER BY $orderBy";

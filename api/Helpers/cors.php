@@ -5,6 +5,9 @@
 // Specify domains from which requests are allowed
 header('Access-Control-Allow-Origin: https://qrid.space');
 
+// Specify which request headers are allowed
+header("Access-Control-Allow-Credentials: true");
+
 // Specify which request methods are allowed
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 
