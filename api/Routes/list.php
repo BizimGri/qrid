@@ -30,9 +30,19 @@ return [
             ],
             'data' => [
                 ''          => ['DataController', 'store'],         // POST /data
+            ],
+            'subdata' => [
+                ''          => ['SubDataController', 'store'],      // POST /sub-data
             ]
         ],
-        'PUT' => [],
+        'PUT' => [
+            'data' => [
+                '{id}'      => ['DataController', 'update'],        // PUT /data/{id}
+            ],
+            'subdata' => [
+                '{id}'      => ['SubDataController', 'update'],     // PUT /sub-data/{id}
+            ]
+        ],
         'DELETE' => []
     ]
 ];

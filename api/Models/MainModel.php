@@ -28,6 +28,13 @@ class MainModel
         }
     }
 
+    public function getByVID($vID, $columns = "*")
+    {
+        $stmt = $this->pdo->prepare("SELECT {$columns} FROM {$this->table} WHERE vID = :vID");
+        $stmt->execute(['vID' => $vID]);
+        return $stmt->fetch();
+    }
+
     public function getAll($columns = "*")
     {
         $stmt = $this->pdo->query("SELECT {$columns} FROM {$this->table}");
@@ -51,7 +58,6 @@ class MainModel
         if (!$stmt->execute($data)) {
             return false;
         }
-
         if ($returnData) {
             $lastId = $this->pdo->lastInsertId();
             return $this->getById($lastId);

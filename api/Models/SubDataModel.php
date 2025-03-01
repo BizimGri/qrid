@@ -2,12 +2,11 @@
 
 require_once __DIR__ . '/MainModel.php';
 
-class DataModel extends MainModel
+class SubDataModel extends MainModel
 {
-    protected $table = 'datas';
+    protected $table = 'subDatas';
 
     function __construct() {
         parent::__construct();
     }
-
 }

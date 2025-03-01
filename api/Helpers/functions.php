@@ -27,6 +27,56 @@ function response($data = [], $status = 200, $message = 'OK')
     exit;
 }
 
+// Route matching
+function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
+{
+    // If request URI is completely empty
+    if (empty($requestUri)) {
+        response(NULL, 418, 'Welcome To The Desert Of The Real!');
+    }
+
+    // Check the valid HTTP method
+    if (!isset($apiRoutes[$requestMethod])) {
+        return null;
+    }
+
+    // Split URL into segments // for now, we only use 0 (baseRoute) and 1 (subRoute/id) parts
+    $uriSegments = explode('/', $requestUri);
+    $baseRoute = $uriSegments[0] ?? '';
+
+    // If it's not a public route, run AuthMiddleware
+    if (!in_array($uriSegments[1] ?? '', $publicRoutes[$requestMethod][$baseRoute])) {
+        AuthMiddleware::handle();
+    }
+
+    // If the main route (e.g., users, images) is not found, return 404
+    if (!isset($apiRoutes[$requestMethod][$baseRoute])) {
+        return null;
+    }
+
+    // Get sub-routes
+    $subRoutes = $apiRoutes[$requestMethod][$baseRoute];
+    $subPath = $uriSegments[1] ?? null; // users/{id} -> {id}
+
+    // If there is a direct match
+    if ($subPath === null && isset($subRoutes[''])) {
+        return [$subRoutes[''], []]; // A request like /users
+    }
+
+    // First, check for statically defined paths (e.g., users/campaign)
+    if ($subPath !== null && isset($subRoutes[$subPath])) {
+        return [$subRoutes[$subPath], []];
+    }
+
+    // If it's in the form of users/{id}, directly get the ID
+    if ($subPath !== null && isset($subRoutes['{id}'])) {
+        $cleanId = sanitizeId($subPath); // Make it safe
+        return [$subRoutes['{id}'], [$cleanId]];
+    }
+
+    return null;
+}
+
 /**
  * Sanitizes an ID to ensure it only contains valid characters.
  *
