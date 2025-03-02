@@ -71,9 +71,11 @@ class MainModel
 
         $stmt = $this->pdo->prepare("UPDATE {$this->table} SET $setClause WHERE id = :id");
         $data['id'] = $id;
-
-        if (!$stmt->execute($data) || $stmt->rowCount() === 0) {
+        
+        if (!$stmt->execute($data)) {
             return false;
+        } else if ($stmt->rowCount() === 0) {
+            response(NULL, 304);
         }
 
         return $returnData ? $this->getById($id) : true;
@@ -104,9 +106,17 @@ class MainModel
         return $stmt->fetchAll();
     }
 
-    public function count()
+    public function count(array $conditions = [])
     {
-        $stmt = $this->pdo->query("SELECT COUNT(*) as total FROM {$this->table}");
+        if(empty($conditions)) {
+            $stmt = $this->pdo->query("SELECT COUNT(*) as total FROM {$this->table}");
+        }
+        else {
+            $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
+            $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE $whereClause";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($conditions);
+        }
         return $stmt->fetch()['total'];
     }
 

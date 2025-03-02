@@ -14,6 +14,31 @@ class DataController extends MainController
         parent::__construct(new DataModel());
     }
 
+    public function getByVID($vID)
+    {
+        $data = $this->model->getWhere(["vID" => $vID, "personID" => AuthMiddleware::$person["id"]])[0];
+        if (!$data) {
+            response(NULL, 404, "Data not found.");
+        }
+
+        $data["personID"] = AuthMiddleware::$person["vID"];
+        $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
+        
+        unset($data["id"]);
+        response($data);
+    }
+
+    public function getAll() {
+        $datas = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"]], "id, vID, creationTime, releaseTime, title, isPassive, accessTypeID");
+
+        foreach ($datas as $key => $data) {
+            $datas[$key]["subDataCount"] = $this->subDataModel->count(["dataID" => $data["id"]]);
+            unset($datas[$key]["id"]);
+        }
+
+        response($datas);
+    }
+
     public function store() {
         checkRequiredParams(['title', 'note', 'accessTypeID', 'isPassive'], $this->params);
         $vID = self::generateUniqueVid("data");
@@ -40,4 +65,29 @@ class DataController extends MainController
         $createdData ? response($createdData, 201, "Data created.") : response(NULL, 500, "Internal Server Error");
     }
 
+    public function update($vID) {
+        checkRequiredParams(["title", "note", "accessTypeID", "isPassive"], $this->params);
+        $dataVID = sanitizeId($vID);
+
+        $data = $this->model->getWhere(["vID" => $dataVID, "personID" => AuthMiddleware::$person["id"]])[0];
+        if (!$data) {
+            response(NULL, 404, "Data not found or you are not authorized to update subdata for this data.");
+        }
+        
+        if($this->params['accessTypeID'] == 2 || $this->params['accessTypeID'] == 3){
+            $releaseTime = date_create()->format('Y-m-d H:i:s');
+        }
+
+        $newData = [
+            "title" => $this->params["title"],
+            "note" => $this->params["note"],
+            "accessTypeID" => $this->params["accessTypeID"],
+            "isPassive" => $this->params["isPassive"] ? 1 : 0,
+            "releaseTime" => $releaseTime ?? NULL
+        ];
+        $updatedData = $this->model->update($data["id"], $newData);
+        unset($updatedData["id"]);
+        unset($updatedData["personID"]);
+        response($updatedData);
+    }
 }

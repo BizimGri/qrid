@@ -11,27 +11,21 @@ class MainController
         $this->params = getRequestParams();
     }
 
-    // Bu fonksiyonlar tekrar eden işlemleri kısaltmak için kullanılabilir ya da kaldırılacak!
-    public function index()
-    {
-        response($this->model->getAll());
-    }
-
-    public function getById($id)
-    {
-        $result = $this->model->getById($id);
-        $result ? response($result) : response(NULL, 404, "Not Found");
-    }
-
-    public function create($data)
-    {
-        $data = $this->model->create($data);
-        if ($data) {
-            response($data, 201, "Created.");
-        } else {
-            response(NULL, 500, "Internal Server Error");
-        }
-    }
+    // public function getById($id)
+    // {
+    //     $result = $this->model->getById($id);
+    //     $result ? response($result) : response(NULL, 404, "Not Found");
+    // }
+    //
+    // public function create($data)
+    // {
+    //     $data = $this->model->create($data);
+    //     if ($data) {
+    //         response($data, 201, "Created.");
+    //     } else {
+    //         response(NULL, 500, "Internal Server Error");
+    //     }
+    // }
 
     public function generateUniqueVid($type = "vID")
     {

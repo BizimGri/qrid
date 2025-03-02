@@ -14,13 +14,9 @@ return [
 
     'apiRoutes' => [
         'GET' => [
-            'users'  => [                                           // Static route and data for testing
-                ''       => ['UserController', 'index'],            // GET /users
-                '{id}'   => ['UserController', 'getById'],          // GET /users/{id}
-            ],
             'data' => [
-                ''       => ['DataController', 'index'],            // GET /data
-                '{id}'   => ['DataController', 'getById'],          // GET /data/{id}
+                'all'    => ['DataController', 'getAll'],           // GET /data
+                '{id}'   => ['DataController', 'getByVID'],         // GET /data/{id}
             ]
         ],
         'POST' => [
@@ -40,7 +36,7 @@ return [
                 '{id}'      => ['DataController', 'update'],        // PUT /data/{id}
             ],
             'subdata' => [
-                '{id}'      => ['SubDataController', 'update'],     // PUT /sub-data/{id}
+                '{id}'      => ['SubDataController', 'update'],     // PUT /subdata/{id}
             ]
         ],
         'DELETE' => []
