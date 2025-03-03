@@ -11,6 +11,21 @@ class AuthMiddleware
         self::authenticate(); // Giriş kontrolü yap
     }
 
+    public static function check(){
+        if (!isset($_COOKIE['jwt_token'])) {
+            return;
+        }
+
+        $token = $_COOKIE['jwt_token'];
+        $decoded = JwtHandler::decode($token);
+
+        if (!$decoded) {
+            return;
+        }
+
+        self::$person = (array) $decoded; // Kullanıcı bilgilerini döndür
+    }
+
     private static function authenticate()
     {
         if (!isset($_COOKIE['jwt_token'])) {
@@ -26,4 +41,5 @@ class AuthMiddleware
 
         self::$person = (array) $decoded; // Kullanıcı bilgilerini döndür
     }
+    
 }

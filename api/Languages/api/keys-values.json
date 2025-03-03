@@ -1,7 +1,8 @@
 {
     "accessTypes": {
-        "0": "private",
-        "1": "public"
+        "private": "1",
+        "shared": "2",
+        "public": "3"
     },
     "accessLevels": {
         "1": "access_level_1",

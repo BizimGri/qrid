@@ -9,6 +9,11 @@ return [
                 'register',
                 'forgot-password'
             ]
+        ],
+        'GET' => [
+            'access' => [
+                'request', // qrid.space/api/access/request/?vID=1eryew4wre GET isteği içinden parametrelerde vID yakalanır...
+            ]
         ]
     ],
 
@@ -17,6 +22,9 @@ return [
             'data' => [
                 'all'    => ['DataController', 'getAll'],           // GET /data
                 '{id}'   => ['DataController', 'getByVID'],         // GET /data/{id}
+            ],
+            'access' => [
+                'request'   => ['AccessController', 'get'],             // GET /access/data/{vID}
             ]
         ],
         'POST' => [

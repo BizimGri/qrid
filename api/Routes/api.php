@@ -1,6 +1,4 @@
 <?php
-// For Testing
-require_once __DIR__ . '/../Controllers/UserController.php';
 
 // Load required files
 require_once __DIR__ . '/api_required_files.php';

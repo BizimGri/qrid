@@ -29,12 +29,7 @@ class DataController extends MainController
     }
 
     public function getAll() {
-        $datas = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"]], "id, vID, creationTime, releaseTime, title, isPassive, accessTypeID");
-
-        foreach ($datas as $key => $data) {
-            $datas[$key]["subDataCount"] = $this->subDataModel->count(["dataID" => $data["id"]]);
-            unset($datas[$key]["id"]);
-        }
+        $datas = $this->model->getAllDataByPersonId(AuthMiddleware::$person["id"]);
 
         response($datas);
     }

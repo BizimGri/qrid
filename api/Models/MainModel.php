@@ -91,17 +91,18 @@ class MainModel
     {
         $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
         $sql = "SELECT {$columns} FROM {$this->table} WHERE $whereClause";
-
+        
         if ($orderBy) {
             $sql .= " ORDER BY $orderBy";
         }
-
+        
         if ($limit) {
             $sql .= " LIMIT $limit";
         }
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($conditions);
+
 
         return $stmt->fetchAll();
     }
