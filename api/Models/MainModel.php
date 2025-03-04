@@ -1,7 +1,7 @@
 <?php
 
 class MainModel
-{   
+{
     protected $pdo;
     protected $table; // Model içinde belirtilecek
 
@@ -71,7 +71,7 @@ class MainModel
 
         $stmt = $this->pdo->prepare("UPDATE {$this->table} SET $setClause WHERE id = :id");
         $data['id'] = $id;
-        
+
         if (!$stmt->execute($data)) {
             return false;
         } else if ($stmt->rowCount() === 0) {
@@ -91,11 +91,11 @@ class MainModel
     {
         $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
         $sql = "SELECT {$columns} FROM {$this->table} WHERE $whereClause";
-        
+
         if ($orderBy) {
             $sql .= " ORDER BY $orderBy";
         }
-        
+
         if ($limit) {
             $sql .= " LIMIT $limit";
         }
@@ -109,10 +109,9 @@ class MainModel
 
     public function count(array $conditions = [])
     {
-        if(empty($conditions)) {
+        if (empty($conditions)) {
             $stmt = $this->pdo->query("SELECT COUNT(*) as total FROM {$this->table}");
-        }
-        else {
+        } else {
             $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
             $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE $whereClause";
             $stmt = $this->pdo->prepare($sql);
@@ -125,11 +124,10 @@ class MainModel
     {
         $whereClause = implode(" AND ", array_map(fn($key) => "$key = :$key", array_keys($conditions)));
         $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE $whereClause";
-        
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($conditions);
 
         return $stmt->fetch()['count'] > 0;
     }
-
 }

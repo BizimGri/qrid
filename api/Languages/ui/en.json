@@ -170,7 +170,7 @@
     "idle_status": "Idle status",
     "away_status": "Away status",
     "do_not_disturb_status": "Do not disturb status",
-    "data_access_types":{
+    "data_access_types": {
         "private": "Private",
         "shared": "Shared",
         "public": "Public"
@@ -304,7 +304,7 @@
         "bank_account_number_description": "A bank account number",
         "bank_account_number_placeholder": "1234567890"
     },
-    "data_types":{
+    "data_types": {
         "delivery": "Delivery",
         "asset": "Asset",
         "health": "Health",

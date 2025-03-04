@@ -152,7 +152,8 @@ function getRequestParams()
  * @return array The array of raw parameters.
  * @example getPhpInputs(); // Returns an array of raw parameters
  */
-function getPhpInputs() : array {
+function getPhpInputs(): array
+{
     $inputs = [];
     $php_input = file_get_contents("php://input");
     $inputs = json_decode($php_input, true);
@@ -207,7 +208,7 @@ function checkRequiredParams(array $requiredParams, array $data)
  * @example validateEmail('test@example.com'); // Returns true
  * @example validateEmail('invalid-email'); // Returns false
  */
-function validateEmail($email) : bool
+function validateEmail($email): bool
 {
     return !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
 }
@@ -266,4 +267,3 @@ function createLog($type, $message)
     // Optional: Uncomment the following line to log to the terminal
     // error_log($logMessage);
 }
-

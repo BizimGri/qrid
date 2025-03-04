@@ -14,7 +14,8 @@ class SubDataController extends MainController
         parent::__construct(new SubDataModel());
     }
 
-    public function store() {
+    public function store()
+    {
         checkRequiredParams(['dataID', 'subDataTypeID', 'accessLevelID', 'key', 'value'], $this->params);
         $data = $this->dataModel->getByVID($this->params['dataID'], "id, personID, vID");
         if (!$data) {
@@ -32,7 +33,7 @@ class SubDataController extends MainController
         if (!$accessLevel) {
             response(NULL, 404, "Access level not found.");
         }
-        
+
         $subData = [
             "dataID" => $data["id"],
             "subDataTypeID" => $this->params['subDataTypeID'],
@@ -52,16 +53,17 @@ class SubDataController extends MainController
         }
     }
 
-    public function update($id) {
+    public function update($id)
+    {
         checkRequiredParams(["dataID", "subDataTypeID", "accessLevelID", "key", "value"], $this->params);
         $dataID = sanitizeId($this->params["dataID"]);
 
-        
+
         $data = $this->dataModel->getWhere(["vID" => $dataID, "personID" => AuthMiddleware::$person["id"]], "id, vID, personID");
         if (!$data) {
             response(NULL, 404, "Data not found or you are not authorized to update subdata for this data.");
         }
-        
+
         $subDataCheck = $this->model->exists(["id" => $id, "dataID" => $data[0]["id"]]);
         if (!$subDataCheck) {
             response(NULL, 404, "Subdata not found or you are not authorized to update subdata for this data.");
@@ -95,5 +97,4 @@ class SubDataController extends MainController
             response(NULL, 500, "Internal Server Error.");
         }
     }
-
 }

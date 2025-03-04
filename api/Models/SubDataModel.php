@@ -6,7 +6,8 @@ class SubDataModel extends MainModel
 {
     protected $table = 'subDatas';
 
-    function __construct() {
+    function __construct()
+    {
         parent::__construct();
     }
 }

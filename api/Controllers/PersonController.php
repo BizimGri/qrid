@@ -9,10 +9,11 @@ class PersonController extends MainController
         parent::__construct(new PersonModel());
     }
 
-    function register() {
+    function register()
+    {
         checkRequiredParams(['name', 'email', 'password'], $this->params);
 
-        if($this->model->exists(["email" => $this->params['email']])) {
+        if ($this->model->exists(["email" => $this->params['email']])) {
             response(NULL, 409, "Email already exists.");
         }
 
@@ -25,10 +26,11 @@ class PersonController extends MainController
             "password" => hashPassword($this->params['password'])
         ];
 
-        $this->model->create($person, false) ? response([], 201, "Person created.") : response(NULL, 500, "Internal Server Error");        
+        $this->model->create($person, false) ? response([], 201, "Person created.") : response(NULL, 500, "Internal Server Error");
     }
 
-    function login() {
+    function login()
+    {
         require_once __DIR__ . '/../Helpers/JwtHandler.php';
 
         checkRequiredParams(['email', 'password'], $this->params);

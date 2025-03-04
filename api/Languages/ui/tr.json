@@ -175,7 +175,7 @@
         "shared": "Paylaşılan",
         "public": "Herkese Açık"
     },
-    "access_levels":{
+    "access_levels": {
         "access_level_1": "Erişim Seviyesi 1",
         "access_level_2": "Erişim Seviyesi 2",
         "access_level_3": "Erişim Seviyesi 3",
@@ -185,7 +185,7 @@
         "access_level_3_description": "Bir bireyi tanımlama potansiyeli olan veri",
         "access_level_4_description": "Bir bireyi tanımlama potansiyeli düşük olan veri"
     },
-    "sub_data_types" : {
+    "sub_data_types": {
         "url": "URL (Web Adresi)",
         "url_description": "Web adresi girin",
         "url_placeholder": "https://www.ornek.com",
@@ -304,7 +304,7 @@
         "bank_account_number_description": "Banka hesap numarası girin",
         "bank_account_number_placeholder": "TR12 3456 7890 1234 5678 9012 34"
     },
-    "data_types" : {
+    "data_types": {
         "delivery": "Teslimat",
         "asset": "Varlık",
         "health": "Sağlık",

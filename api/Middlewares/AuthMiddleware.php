@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../Helpers/JwtHandler.php';
+require_once __DIR__ . '/../Helpers/JwtHandler.php';
 
 class AuthMiddleware
 {
@@ -11,7 +11,8 @@ class AuthMiddleware
         self::authenticate(); // Giriş kontrolü yap
     }
 
-    public static function check(){
+    public static function check()
+    {
         if (!isset($_COOKIE['jwt_token'])) {
             return;
         }
@@ -41,5 +42,4 @@ class AuthMiddleware
 
         self::$person = (array) $decoded; // Kullanıcı bilgilerini döndür
     }
-    
 }
