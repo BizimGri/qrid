@@ -23,24 +23,31 @@ class DataController extends MainController
 
         $data["personID"] = AuthMiddleware::$person["vID"];
         $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
-        
+
         unset($data["id"]);
         response($data);
     }
 
-    public function getAll() {
-        $datas = $this->model->getAllDataByPersonId(AuthMiddleware::$person["id"]);
+    public function getAll()
+    {
+        $datas = $this->model->getAllOwnDataByPersonId(AuthMiddleware::$person["id"]);
 
         response($datas);
     }
 
-    public function store() {
-        checkRequiredParams(['title', 'note', 'accessTypeID', 'isPassive'], $this->params);
+    public function store()
+    {
+        checkRequiredParams(['title', 'note', 'accessTypeID', 'accessLevelID', 'isPassive'], $this->params);
         $vID = self::generateUniqueVid("data");
 
         $accessType = (new VirtualModel("access_types"))->getById($this->params["accessTypeID"], "title");
-        if(!$accessType){
+        if (!$accessType) {
             response(NULL, 404, "Access type not found.");
+        }
+
+        $accessLevel = (new VirtualModel("access_levels"))->getById($this->params["accessLevelID"], "title");
+        if (!$accessLevel) {
+            response(NULL, 404, "Access level not found.");
         }
 
         $data = [
@@ -49,6 +56,7 @@ class DataController extends MainController
             "title" => $this->params['title'],
             "note" => $this->params['note'],
             "accessTypeID" => $this->params['accessTypeID'],
+            "accessLevelID" => $this->params["accessLevelID"],
             "isPassive" => $this->params['isPassive'],
             "releaseTime" => $this->params['accessTypeID'] == 1 ? date_create()->format('Y-m-d H:i:s') : NULL
         ];
@@ -57,10 +65,12 @@ class DataController extends MainController
         unset($createdData["id"]);
         unset($createdData['personID']);
         $createdData["accessType"] = $accessType["title"];
+        $createdData["accessLevel"] = $accessLevel["title"];
         $createdData ? response($createdData, 201, "Data created.") : response(NULL, 500, "Internal Server Error");
     }
 
-    public function update($vID) {
+    public function update($vID)
+    {
         checkRequiredParams(["title", "note", "accessTypeID", "isPassive"], $this->params);
         $dataVID = sanitizeId($vID);
 
@@ -68,8 +78,8 @@ class DataController extends MainController
         if (!$data) {
             response(NULL, 404, "Data not found or you are not authorized to update subdata for this data.");
         }
-        
-        if($this->params['accessTypeID'] == 2 || $this->params['accessTypeID'] == 3){
+
+        if ($this->params['accessTypeID'] == 2 || $this->params['accessTypeID'] == 3) {
             $releaseTime = date_create()->format('Y-m-d H:i:s');
         }
 

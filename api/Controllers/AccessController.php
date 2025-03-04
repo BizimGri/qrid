@@ -20,15 +20,17 @@ class AccessController extends MainController
         parent::__construct(new AccessModel());
     }
 
-    public function get() {
+    public function get()
+    {
         $publicID = ApiConstants::getWord("accessTypes", "public");
         $sharedID = ApiConstants::getWord("accessTypes", "shared");
 
-        if(!empty($this->params["data"])){
+        if (!empty($this->params["data"])) {
             $vID = sanitizeId($this->params["data"]);
-            $dataPublic = $this->dataModel->exists(["vID" => $vID, "accessTypeID" => $publicID]);
-            if ($dataPublic) {
-                $data = $this->dataModel->getByVID($vID);
+            $data = $this->dataModel->getByVID($vID);
+            if (!$data || ($data["accessTypeID"] != $publicID && $data["accessTypeID"] != $sharedID)) response(NULL, 404, "Data not found.");
+
+            if ($data["accessTypeID"] == $publicID) {
                 $data["person"] = $this->personModel->getById($data["personID"], "vID, name, nickname");
                 $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
 
@@ -37,21 +39,40 @@ class AccessController extends MainController
                 response($data);
             }
 
-            $dataShared = $this->dataModel->exists(["vID" => $vID, "accessTypeID" => $sharedID]);
-            if ($dataShared) {
-                
-            }
+            if ($data["accessTypeID"] == $sharedID) {
+                $dataType = ApiConstants::getWord("entityTypes", "data");
+                AuthMiddleware::check();
+                if (AuthMiddleware::$person) {
+                    $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $dataType, "entityID" => $data["id"]])[0];
 
-            response(NULL, 404, "Data not found.");
-        } else if (!empty($this->params["person"])){
+                    if ($result) {
+
+                        if ($result["isApproved"] == "1") {
+
+                            $data = $this->dataModel->getDataByIdAndAccessLevel($data["id"], $result["accessLevelID"]);
+
+                            response($data);
+                        } else if ($result["isApproved"] == 0) {
+                            response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
+                        }
+                    } else {
+                        response(["accessTypeID" => $sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
+                    }
+                } else {
+                    response(["accessTypeID" => $sharedID, "recommendation" => "login"], 200, "data shared, login and create access request.");
+                }
+            }
+        } else if (!empty($this->params["person"])) {
             $vID = sanitizeId($this->params["person"]);
 
             $person = $this->personModel->getByVID($vID, "id, vID, name, nickname, accessTypeID");
 
-            if($person["accessTypeID"] == $publicID){
+            if (!$person) response(NULL, 404, "Person not found.");
 
-                $datas = $this->dataModel->getAllDataByPersonId($person["id"], true);
-                
+            if ($person["accessTypeID"] == $publicID) {
+
+                $datas = $this->dataModel->getAllDataByPersonId($person["id"], true, 0);
+
                 unset($person["id"]);
                 $data = [
                     "accessTypeID" => $publicID,
@@ -62,22 +83,20 @@ class AccessController extends MainController
             }
 
             if ($person["accessTypeID"] == $sharedID) {
+                $personType = ApiConstants::getWord("entityTypes", "person");
                 AuthMiddleware::check();
-                if(AuthMiddleware::$person){
-                    $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => "p", "entityID" => $person["id"]])[0];
-
+                if (AuthMiddleware::$person) {
+                    $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $personType, "entityID" => $person["id"]])[0];
 
                     if ($result) {
+
                         if ($result["isApproved"] == "1") {
 
-                            // Access Level ID bakılarak daha genel seviyede verilere erişilmesi sağlanacak!!! $result["accessLevelID"] !!!
-
-                            /*
-                                "accessLevelID" konusunu sadece "subData" için değil "data" için de geçerli olacak.
-                                datas.accessLevelID tanımlandı.
-                            */
-
-                            $datas = $this->dataModel->getAllDataByPersonId($person["id"]);
+                            if ($result["accessLevelID"] <= 1) $datas_al1 = $this->dataModel->getAllDataByPersonId($person["id"], false, 1);
+                            if ($result["accessLevelID"] <= 2) $datas_al2 = $this->dataModel->getAllDataByPersonId($person["id"], false, 2);
+                            if ($result["accessLevelID"] <= 3) $datas_al3 = $this->dataModel->getAllDataByPersonId($person["id"], false, 3);
+                            if ($result["accessLevelID"] <= 4) $datas_al4 = $this->dataModel->getAllDataByPersonId($person["id"], false, 4);
+                            $datas = array_merge($datas_al1 ?? [], $datas_al2 ?? [], $datas_al3 ?? [], $datas_al4 ?? []);
 
                             unset($person["id"]);
                             $data = [
@@ -87,32 +106,22 @@ class AccessController extends MainController
                             ];
 
                             response($data);
-                        } else {
-                            response(NULL, 401, "The access request has not yet been approved.");
+                        } else if ($result["isApproved"] == 0) {
+                            response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
                         }
-                        
-                        response(NULL, 200);
                     } else {
-                        response(NULL, 404);
+                        response(["accessTypeID" => $sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
                     }
                 } else {
-                    response(["accessTypeID" => $sharedID], 200, "person shared, login and create access request.");
+                    response(["accessTypeID" => $sharedID, "recommendation" => "login"], 200, "person shared, login and create access request.");
                 }
             }
-
-            response(NULL, 404, "Person not found.");
         } else {
             response(400);
         }
-
     }
 
-    public function create() {
-        
-    }
+    public function create() {}
 
-    public function approve() {
-        
-    }
-
+    public function approve() {}
 }

@@ -9,5 +9,9 @@
         "2": "access_level_2",
         "3": "access_level_3",
         "4": "access_level_4"
+    },
+    "entityTypes": {
+        "data": "d",
+        "person": "p"
     }
 }
