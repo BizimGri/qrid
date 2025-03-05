@@ -14,7 +14,7 @@ class SubDataController extends MainController
         parent::__construct(new SubDataModel());
     }
 
-    public function store()
+    public function create()
     {
         checkRequiredParams(['dataID', 'subDataTypeID', 'accessLevelID', 'key', 'value'], $this->params);
         $data = $this->dataModel->getByVID($this->params['dataID'], "id, personID, vID");

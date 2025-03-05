@@ -10,7 +10,7 @@ class ApiConstants
             return;
         }
 
-        $filePath = __DIR__ . "/../Languages/api/keys-values.json";
+        $filePath = __DIR__ . "/constants.json";
         self::$words = json_decode(file_get_contents($filePath), true) ?? [];
     }
 

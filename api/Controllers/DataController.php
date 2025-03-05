@@ -35,7 +35,7 @@ class DataController extends MainController
         response($datas);
     }
 
-    public function store()
+    public function create()
     {
         checkRequiredParams(['title', 'note', 'accessTypeID', 'accessLevelID', 'isPassive'], $this->params);
         $vID = self::generateUniqueVid("data");

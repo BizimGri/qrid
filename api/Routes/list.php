@@ -24,7 +24,8 @@ return [
                 '{id}'   => ['DataController', 'getByVID'],         // GET /data/{id}
             ],
             'access' => [
-                'request'   => ['AccessController', 'get'],             // GET /access/data/{vID}
+                'request'   => ['AccessController', 'get'],         // GET /access/data/?{person/data}={vID}
+                'all'       => ['AccessController', 'getAll'],      // GET /access  
             ]
         ],
         'POST' => [
@@ -33,10 +34,13 @@ return [
                 'login'     => ['PersonController', 'login'],       // POST /person/login
             ],
             'data' => [
-                ''          => ['DataController', 'store'],         // POST /data
+                ''          => ['DataController', 'create'],         // POST /data
             ],
             'subdata' => [
-                ''          => ['SubDataController', 'store'],      // POST /sub-data
+                ''          => ['SubDataController', 'create'],      // POST /sub-data
+            ],
+            'access' => [
+                'request'   => ['AccessController', 'create'],       // POST /access/request
             ]
         ],
         'PUT' => [
@@ -45,6 +49,9 @@ return [
             ],
             'subdata' => [
                 '{id}'      => ['SubDataController', 'update'],     // PUT /subdata/{id}
+            ],
+            'access' => [
+                'request'   => ['AccessController', 'approve'],      // PUT /access/{id}
             ]
         ],
         'DELETE' => []

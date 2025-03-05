@@ -121,7 +121,116 @@ class AccessController extends MainController
         }
     }
 
-    public function create() {}
+    public function getAll()
+    {
+        $personID = AuthMiddleware::$person["id"];
+        $dataIDs = $this->dataModel->getWhere(["personID" => $personID], "id");
 
-    public function approve() {}
+        $accessPersonRequests = $this->model->getWhere(["type" => "p", "entityID" => $personID, "isApproved" => 0]);
+        $accessDataRequests = [];
+        foreach ($dataIDs as $data) {
+            $requests = $this->model->getWhere(["type" => "d", "entityID" => $data["id"], "isApproved" => 0]);
+            if (!empty($requests)) {
+                foreach ($requests as $request) {
+                    $accessDataRequests[] = $request;
+                }
+            }
+        }
+
+        foreach ($accessPersonRequests as $key => $request) {
+            $accessPersonRequests[$key]["person"] = $this->personModel->getById($request["personID"], "vID, name, nickname");
+        }
+
+        foreach ($accessDataRequests as $key => $request) {
+            $accessDataRequests[$key]["person"] = $this->personModel->getById($request["personID"], "vID, name, nickname");
+            $accessDataRequests[$key]["data"] = $this->dataModel->getById($request["entityID"], "vID, title, note, accessLevelID, accessTypeID, isPassive, creationTime");
+        }
+
+        response(["person" => $accessPersonRequests, "data" => $accessDataRequests]);
+    }
+
+    public function create()
+    {
+        checkRequiredParams(["type", "vID"], $this->params);
+        $vID = sanitizeId($this->params["vID"]);
+        $type = $this->params["type"];
+
+        if ($type == ApiConstants::getWord("entityTypes", "data")) {
+            $data = $this->dataModel->getByVID($vID);
+            if (!$data) response(NULL, 404, "Data not found.");
+
+            $accessCheck = $this->model->exists(["personID" => AuthMiddleware::$person["id"], "type" => $type, "entityID" => $data["id"]]);
+            if ($accessCheck) response(NULL, 400, "Access request already exists.");
+
+            $accessData = [
+                "personID" => AuthMiddleware::$person["id"],
+                "type" => $type,
+                "entityID" => $data["id"],
+                "isApproved" => 0
+            ];
+
+            $access = $this->model->create($accessData);
+            if ($access) response($access, 201, "Access request created.");
+            else response(NULL, 500, "Access request could not be created.");
+        } else if ($type == ApiConstants::getWord("entityTypes", "person")) {
+            $person = $this->personModel->getByVID($vID);
+            if (!$person) response(NULL, 404, "Person not found.");
+
+            $accessCheck = $this->model->exists(["personID" => AuthMiddleware::$person["id"], "type" => $type, "entityID" => $person["id"]]);
+            if ($accessCheck) response(NULL, 400, "Access request already exists.");
+
+            $accessData = [
+                "personID" => AuthMiddleware::$person["id"],
+                "type" => $type,
+                "entityID" => $person["id"],
+                "isApproved" => 0
+            ];
+
+            $access = $this->model->create($accessData);
+            if ($access) response($access, 201, "Access request created.");
+            else response(NULL, 500, "Access request could not be created.");
+        } else {
+            response(400, "Invalid type.");
+        }
+    }
+
+    public function approve()
+    {
+        checkRequiredParams(["id", "isApproved", "accessLevelID", "type", "entityID"], $this->params);
+        $personID = AuthMiddleware::$person["id"];
+        $type = $this->params["type"];
+        $accessRequest = $this->model->getWhere(["id" => $this->params["id"], "entityID" => $this->params["entityID"], "type" => $type])[0];
+        if (!$accessRequest) response(NULL, 404, "Access request not found.");
+
+        if ($type == ApiConstants::getWord("entityTypes", "data")) {
+            $data = $this->dataModel->getById($this->params["entityID"], "personID");
+            if ($data["personID"] != $personID) {
+                response(NULL, 403, "You are not authorized to approve this request.");
+            }
+
+            $updatedAccess = [
+                "isApproved" => $this->params["isApproved"],
+                "accessLevelID" => $this->params["accessLevelID"]
+            ];
+
+            $result = $this->model->update($this->params["id"], $updatedAccess);
+            if ($result) response($result, 200, "Access request updated.");
+            else response(NULL, 500, "Internal Server Error.");
+        } else if ($type == ApiConstants::getWord("entityTypes", "person")) {
+            if ($personID != $this->params["entityID"]) {
+                response(NULL, 403, "You are not authorized to approve this request.");
+            }
+
+            $updatedAccess = [
+                "isApproved" => $this->params["isApproved"],
+                "accessLevelID" => $this->params["accessLevelID"]
+            ];
+
+            $result = $this->model->update($this->params["id"], $updatedAccess);
+            if ($result) response($result, 200, "Access request updated.");
+            else response(NULL, 500, "Internal Server Error.");
+        } else {
+            response(400, "Invalid type.");
+        }
+    }
 }
