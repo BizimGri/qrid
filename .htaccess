@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /
+
+# Eğer doğrudan bir dosya veya dizin varsa yönlendirme yapma
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Tüm istekleri /client/index.html'e yönlendir
+RewriteRule ^$ /client/index.html [L]
