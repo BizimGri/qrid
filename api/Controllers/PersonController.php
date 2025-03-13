@@ -65,4 +65,24 @@ class PersonController extends MainController
 
         response(NULL, 200, "Login successful.");
     }
+
+    function logout()
+    {
+        setcookie("jwt_token", "", [
+            "expires" => time() - 3600,  // Past time
+            "path" => "/",
+            "httponly" => true,
+            "secure" => true,
+            "samesite" => "Strict"
+        ]);
+        response(NULL, 200, "Logout successful.");
+    }
+
+    function forgotPassword() {
+        // TODO: Implement this method
+    }
+
+    function profile() {
+        // TODO: Implement this method   
+    }
 }

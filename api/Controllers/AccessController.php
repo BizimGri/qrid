@@ -11,113 +11,110 @@ class AccessController extends MainController
     private $dataModel;
     private $subDataModel;
     private $personModel;
+    private $publicID;
+    private $sharedID;
 
     public function __construct()
     {
         $this->dataModel = new DataModel();
         $this->subDataModel = new SubDataModel();
         $this->personModel = new PersonModel();
+        $this->publicID = ApiConstants::getWord("accessTypes", "public");
+        $this->sharedID = ApiConstants::getWord("accessTypes", "shared");
         parent::__construct(new AccessModel());
     }
 
-    public function get()
+    public function getPerson($vID)
     {
-        $publicID = ApiConstants::getWord("accessTypes", "public");
-        $sharedID = ApiConstants::getWord("accessTypes", "shared");
+        $person = $this->personModel->getByVID($vID, "id, vID, name, nickname, accessTypeID");
 
-        if (!empty($this->params["data"])) {
-            $vID = sanitizeId($this->params["data"]);
-            $data = $this->dataModel->getByVID($vID);
-            if (!$data || ($data["accessTypeID"] != $publicID && $data["accessTypeID"] != $sharedID)) response(NULL, 404, "Data not found.");
+        if (!$person) response(NULL, 404, "Person not found.");
 
-            if ($data["accessTypeID"] == $publicID) {
-                $data["person"] = $this->personModel->getById($data["personID"], "vID, name, nickname");
-                $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
+        if ($person["accessTypeID"] == $this->publicID) {
 
-                unset($data["id"]);
-                unset($data["personID"]);
-                response($data);
-            }
+            $datas = $this->dataModel->getAllDataByPersonId($person["id"], true, 0);
 
-            if ($data["accessTypeID"] == $sharedID) {
-                $dataType = ApiConstants::getWord("entityTypes", "data");
-                AuthMiddleware::check();
-                if (AuthMiddleware::$person) {
-                    $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $dataType, "entityID" => $data["id"]])[0];
+            unset($person["id"]);
+            $data = [
+                "accessTypeID" => $this->publicID,
+                "person" => $person,
+                "datas" => $datas
+            ];
+            response($data, 200, "person public");
+        }
 
-                    if ($result) {
+        if ($person["accessTypeID"] == $this->sharedID) {
+            $personType = ApiConstants::getWord("entityTypes", "person");
+            AuthMiddleware::check();
+            if (AuthMiddleware::$person) {
+                $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $personType, "entityID" => $person["id"]])[0];
 
-                        if ($result["isApproved"] == "1") {
+                if ($result) {
 
-                            $data = $this->dataModel->getDataByIdAndAccessLevel($data["id"], $result["accessLevelID"]);
+                    if ($result["isApproved"] == "1") {
 
-                            response($data);
-                        } else if ($result["isApproved"] == 0) {
-                            response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
-                        }
-                    } else {
-                        response(["accessTypeID" => $sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
+                        if ($result["accessLevelID"] <= 1) $datas_al1 = $this->dataModel->getAllDataByPersonId($person["id"], false, 1);
+                        if ($result["accessLevelID"] <= 2) $datas_al2 = $this->dataModel->getAllDataByPersonId($person["id"], false, 2);
+                        if ($result["accessLevelID"] <= 3) $datas_al3 = $this->dataModel->getAllDataByPersonId($person["id"], false, 3);
+                        if ($result["accessLevelID"] <= 4) $datas_al4 = $this->dataModel->getAllDataByPersonId($person["id"], false, 4);
+                        $datas = array_merge($datas_al1 ?? [], $datas_al2 ?? [], $datas_al3 ?? [], $datas_al4 ?? []);
+
+                        unset($person["id"]);
+                        $data = [
+                            "accessTypeID" => $this->publicID,
+                            "person" => $person,
+                            "datas" => $datas
+                        ];
+
+                        response($data);
+                    } else if ($result["isApproved"] == 0) {
+                        response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
                     }
                 } else {
-                    response(["accessTypeID" => $sharedID, "recommendation" => "login"], 200, "data shared, login and create access request.");
+                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
                 }
+            } else {
+                response(["accessTypeID" => $this->sharedID, "recommendation" => "login"], 200, "person shared, login and create access request.");
             }
-        } else if (!empty($this->params["person"])) {
-            $vID = sanitizeId($this->params["person"]);
+        }
+    }
 
-            $person = $this->personModel->getByVID($vID, "id, vID, name, nickname, accessTypeID");
+    public function getData($vID)
+    {
+        $data = $this->dataModel->getByVID($vID);
+        if (!$data || ($data["accessTypeID"] != $this->publicID && $data["accessTypeID"] != $this->sharedID)) response(NULL, 404, "Data not found.");
 
-            if (!$person) response(NULL, 404, "Person not found.");
+        if ($data["accessTypeID"] == $this->publicID) {
+            $data["person"] = $this->personModel->getById($data["personID"], "vID, name, nickname");
+            $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
 
-            if ($person["accessTypeID"] == $publicID) {
+            unset($data["id"]);
+            unset($data["personID"]);
+            response($data);
+        }
 
-                $datas = $this->dataModel->getAllDataByPersonId($person["id"], true, 0);
+        if ($data["accessTypeID"] == $this->sharedID) {
+            $dataType = ApiConstants::getWord("entityTypes", "data");
+            AuthMiddleware::check();
+            if (AuthMiddleware::$person) {
+                $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $dataType, "entityID" => $data["id"]])[0];
 
-                unset($person["id"]);
-                $data = [
-                    "accessTypeID" => $publicID,
-                    "person" => $person,
-                    "datas" => $datas
-                ];
-                response($data, 200, "person public");
-            }
+                if ($result) {
 
-            if ($person["accessTypeID"] == $sharedID) {
-                $personType = ApiConstants::getWord("entityTypes", "person");
-                AuthMiddleware::check();
-                if (AuthMiddleware::$person) {
-                    $result = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "type" => $personType, "entityID" => $person["id"]])[0];
+                    if ($result["isApproved"] == "1") {
 
-                    if ($result) {
+                        $data = $this->dataModel->getDataByIdAndAccessLevel($data["id"], $result["accessLevelID"]);
 
-                        if ($result["isApproved"] == "1") {
-
-                            if ($result["accessLevelID"] <= 1) $datas_al1 = $this->dataModel->getAllDataByPersonId($person["id"], false, 1);
-                            if ($result["accessLevelID"] <= 2) $datas_al2 = $this->dataModel->getAllDataByPersonId($person["id"], false, 2);
-                            if ($result["accessLevelID"] <= 3) $datas_al3 = $this->dataModel->getAllDataByPersonId($person["id"], false, 3);
-                            if ($result["accessLevelID"] <= 4) $datas_al4 = $this->dataModel->getAllDataByPersonId($person["id"], false, 4);
-                            $datas = array_merge($datas_al1 ?? [], $datas_al2 ?? [], $datas_al3 ?? [], $datas_al4 ?? []);
-
-                            unset($person["id"]);
-                            $data = [
-                                "accessTypeID" => $publicID,
-                                "person" => $person,
-                                "datas" => $datas
-                            ];
-
-                            response($data);
-                        } else if ($result["isApproved"] == 0) {
-                            response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
-                        }
-                    } else {
-                        response(["accessTypeID" => $sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
+                        response($data);
+                    } else if ($result["isApproved"] == 0) {
+                        response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
                     }
                 } else {
-                    response(["accessTypeID" => $sharedID, "recommendation" => "login"], 200, "person shared, login and create access request.");
+                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
                 }
+            } else {
+                response(["accessTypeID" => $this->sharedID, "recommendation" => "login"], 200, "data shared, login and create access request.");
             }
-        } else {
-            response(400);
         }
     }
 

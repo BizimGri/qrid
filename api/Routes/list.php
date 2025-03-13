@@ -12,7 +12,8 @@ return [
         ],
         'GET' => [
             'access' => [
-                'request', // qrid.space/api/access/request/?vID=1eryew4wre GET isteği içinden parametrelerde vID yakalanır...
+                'data',
+                'person'
             ]
         ]
     ],
@@ -24,14 +25,20 @@ return [
                 '{id}'   => ['DataController', 'getByVID'],         // GET /data/{id}
             ],
             'access' => [
-                'request'   => ['AccessController', 'get'],         // GET /access/data/?{person/data}={vID}
+                'data'   => ['AccessController', 'getData'],         // GET /access/data/{vID}
+                'person'   => ['AccessController', 'getPerson'],         // GET /access/person/{vID}
                 'all'       => ['AccessController', 'getAll'],      // GET /access  
+            ],
+            'person' => [
+                'logout'          => ['PersonController', 'logout'],      // GET /person/logout
+                'profile'         => ['PersonController', 'profile'],     // GET /person/profile
             ]
         ],
         'POST' => [
             'person'  => [
-                'register'  => ['PersonController', 'register'],    // POST /person/register
-                'login'     => ['PersonController', 'login'],       // POST /person/login
+                'register'        => ['PersonController', 'register'],    // POST /person/register
+                'login'           => ['PersonController', 'login'],       // POST /person/login
+                'forgot-password' => ['PersonController', 'forgotPassword'] // POST /person/forgot-password
             ],
             'data' => [
                 ''          => ['DataController', 'create'],         // POST /data
