@@ -55,15 +55,17 @@ class PersonController extends MainController
 
         $jwt = JwtHandler::encode($payload);
 
-        setcookie("jwt_token", $jwt, [
+        $setCookieCheck = setcookie("jwt_token", $jwt, [
             "expires" => time() + 86400,
             "path" => "/",
             "httponly" => true,  // Disable JavaScript access
             "secure" => true,    // Require HTTPS
-            "samesite" => "Strict"
+            "samesite" => "None" // Allow cross-site requests
         ]);
 
-        response(NULL, 200, "Login successful.");
+        // response(["token" => $jwt], 200, "Login successful.");
+        if ($setCookieCheck) response($payload, 200, "Login successful.");
+        else response(NULL, 500, "Internal Server Error");
     }
 
     function logout()
@@ -73,16 +75,18 @@ class PersonController extends MainController
             "path" => "/",
             "httponly" => true,
             "secure" => true,
-            "samesite" => "Strict"
+            "samesite" => "None"
         ]);
         response(NULL, 200, "Logout successful.");
     }
 
-    function forgotPassword() {
+    function forgotPassword()
+    {
         // TODO: Implement this method
     }
 
-    function profile() {
-        // TODO: Implement this method   
+    function profile()
+    {
+        response(AuthMiddleware::$person, 200, "Profile fetched.");
     }
 }

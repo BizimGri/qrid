@@ -3,7 +3,13 @@
 /* Handle CORS */
 
 // Specify domains from which requests are allowed
-header('Access-Control-Allow-Origin: https://qrid.space');
+$allowed_origins = ["https://qrid.space", "http://localhost:5173"];
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
+
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+}
+// header('Access-Control-Allow-Origin: https://qrid.space');
 
 // Specify which request headers are allowed
 header("Access-Control-Allow-Credentials: true");
