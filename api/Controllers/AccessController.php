@@ -11,16 +11,18 @@ class AccessController extends MainController
     private $dataModel;
     private $subDataModel;
     private $personModel;
-    private $publicID;
+    private $privateID;
     private $sharedID;
+    private $publicID;
 
     public function __construct()
     {
         $this->dataModel = new DataModel();
         $this->subDataModel = new SubDataModel();
         $this->personModel = new PersonModel();
-        $this->publicID = ApiConstants::getWord("accessTypes", "public");
+        $this->privateID = ApiConstants::getWord("accessTypes", "private");
         $this->sharedID = ApiConstants::getWord("accessTypes", "shared");
+        $this->publicID = ApiConstants::getWord("accessTypes", "public");
         parent::__construct(new AccessModel());
     }
 
@@ -28,7 +30,7 @@ class AccessController extends MainController
     {
         $person = $this->personModel->getByVID($vID, "id, vID, name, nickname, accessTypeID");
 
-        if (!$person) response(NULL, 404, "Person not found.");
+        if (!$person || $person["accessTypeID"] == $this->privateID) response(NULL, 404, "Person not found.");
 
         if ($person["accessTypeID"] == $this->publicID) {
 
