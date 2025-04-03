@@ -65,7 +65,7 @@ function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
 
     // First, check for statically defined paths (e.g., users/campaign)
     if ($subPath !== null && isset($subRoutes[$subPath])) {
-        if ($uriSegments[0] == 'access') {
+        if ($uriSegments[0] == 'access' && ($uriSegments[1] == 'data' || $uriSegments[1] == 'person')) {
             $vID = sanitizeId($uriSegments[2]); // Make it safe
             return [$subRoutes[$subPath], [$vID]]; // A request like /access/data/{vID} or /access/person/{vID}
         }
