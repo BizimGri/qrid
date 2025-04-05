@@ -159,7 +159,7 @@ class AccessController extends MainController
             if (!$data) response(NULL, 404, "Data not found.");
 
             $accessCheck = $this->model->exists(["personID" => AuthMiddleware::$person["id"], "type" => $type, "entityID" => $data["id"]]);
-            if ($accessCheck) response(NULL, 208, "Access request already exists.");
+            if ($accessCheck) response(NULL, 400, "Access request already exists.");
 
             $accessData = [
                 "personID" => AuthMiddleware::$person["id"],
@@ -176,7 +176,7 @@ class AccessController extends MainController
             if (!$person) response(NULL, 404, "Person not found.");
 
             $accessCheck = $this->model->exists(["personID" => AuthMiddleware::$person["id"], "type" => $type, "entityID" => $person["id"]]);
-            if ($accessCheck) response(NULL, 208, "Access request already exists.");
+            if ($accessCheck) response(NULL, 400, "Access request already exists.");
 
             $accessData = [
                 "personID" => AuthMiddleware::$person["id"],
