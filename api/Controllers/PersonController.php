@@ -14,7 +14,7 @@ class PersonController extends MainController
         checkRequiredParams(['name', 'email', 'password'], $this->params);
 
         if ($this->model->exists(["email" => $this->params['email']])) {
-            response(NULL, 208, "Email already exists.");
+            response(NULL, 409, "Email already exists.");
         }
 
         $vID = $this->generateUniqueVid("person");
