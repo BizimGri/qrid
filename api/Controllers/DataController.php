@@ -87,7 +87,8 @@ class DataController extends MainController
             "title" => $this->params["title"],
             "note" => $this->params["note"],
             "accessTypeID" => $this->params["accessTypeID"],
-            "isPassive" => $this->params["isPassive"] ? 1 : 0,
+            "accessLevelID" => $this->params["accessLevelID"],
+            "isPassive" => $this->params["isPassive"],
             "releaseTime" => $releaseTime ?? NULL
         ];
         $updatedData = $this->model->update($data["id"], $newData);
