@@ -16,7 +16,7 @@ class SubDataController extends MainController
 
     public function create()
     {
-        checkRequiredParams(['dataID', 'subDataTypeID', 'accessLevelID', 'key', 'value'], $this->params);
+        checkRequiredParams(['dataID', 'subDataTypeID', 'accessLevelID', 'sdKey', 'sdValue'], $this->params);
         $data = $this->dataModel->getByVID($this->params['dataID'], "id, personID, vID");
         if (!$data) {
             response(NULL, 404, "Data not found.");
@@ -38,8 +38,8 @@ class SubDataController extends MainController
             "dataID" => $data["id"],
             "subDataTypeID" => $this->params['subDataTypeID'],
             "accessLevelID" => $this->params['accessLevelID'],
-            "sdKey" => $this->params['key'],
-            "sdValue" => $this->params['value']
+            "sdKey" => $this->params['sdKey'],
+            "sdValue" => $this->params['sdValue']
         ];
 
         $createdSubData = $this->model->create($subData);
@@ -55,7 +55,7 @@ class SubDataController extends MainController
 
     public function update($id)
     {
-        checkRequiredParams(["dataID", "subDataTypeID", "accessLevelID", "key", "value"], $this->params);
+        checkRequiredParams(["dataID", "subDataTypeID", "accessLevelID", "sdKey", "sdValue"], $this->params);
         $dataID = sanitizeId($this->params["dataID"]);
 
 
@@ -83,8 +83,8 @@ class SubDataController extends MainController
             "dataID" => $data[0]["id"],
             "subDataTypeID" => $this->params['subDataTypeID'],
             "accessLevelID" => $this->params['accessLevelID'],
-            "sdKey" => $this->params['key'],
-            "sdValue" => $this->params['value']
+            "sdKey" => $this->params['sdKey'],
+            "sdValue" => $this->params['sdValue']
         ];
 
         $updatedSubData = $this->model->update($id, $subData);
