@@ -61,6 +61,10 @@ return [
                 'request'   => ['AccessController', 'approve'],      // PUT /access/{id}
             ]
         ],
-        'DELETE' => []
+        'DELETE' => [
+            'subdata' => [
+                ''      => ['SubDataController', 'delete'],     // DELETE /subdata?dataID={dataID}&subDataID={subDataID}
+            ],
+        ]
     ]
 ];

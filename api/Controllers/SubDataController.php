@@ -97,4 +97,27 @@ class SubDataController extends MainController
             response(NULL, 500, "Internal Server Error.");
         }
     }
+
+    public function delete()
+    {
+        checkRequiredParams(["dataID", "subDataID"], $this->params);
+        $dataID = sanitizeId($this->params["dataID"]);
+
+        $data = $this->dataModel->getWhere(["vID" => $dataID, "personID" => AuthMiddleware::$person["id"]], "id, vID, personID");
+        if (!$data) {
+            response(NULL, 404, "Data not found or you are not authorized to delete subdata for this data.");
+        }
+
+        $subDataCheck = $this->model->exists(["id" => $this->params["subDataID"], "dataID" => $data[0]["id"]]);
+        if (!$subDataCheck) {
+            response(NULL, 404, "Subdata not found or you are not authorized to delete subdata for this data.");
+        }
+
+        $deletedSubData = $this->model->delete($this->params["subDataID"]);
+        if ($deletedSubData) {
+            response(NULL, 200, "Subdata deleted.");
+        } else {
+            response(NULL, 500, "Internal Server Error.");
+        }
+    }
 }

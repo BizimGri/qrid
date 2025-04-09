@@ -140,8 +140,10 @@ function getRequestParams()
             $params = !empty($_POST) ? $_POST : getPhpInputs();
             break;
         case 'PUT':
-        case 'DELETE':
             $params = getPhpInputs();
+            break;
+        case 'DELETE':
+            $params = $_GET;
             break;
         default:
             response([], 405, 'Method Not Allowed');
