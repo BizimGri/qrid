@@ -62,7 +62,7 @@ class DataModel extends MainModel
             "accessLevelID" => $accessLevelID
         ];
 
-        $data = $this->getById($id, "id, vID, creationTime, releaseTime, title, isPassive, accessTypeID, accessLevelID");
+        $data = $this->getById($id, "id, vID, note, creationTime, releaseTime, title, isPassive, accessTypeID, accessLevelID");
 
         $subDatas = [];
         if ($accessLevelID <= 1) $subDatas_al1 = $this->subDataModel->getWhere(["dataID" => $data["id"], "accessLevelID" => 1]);
