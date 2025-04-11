@@ -4,13 +4,16 @@ require_once __DIR__ . '/../Models/DataModel.php';
 require_once __DIR__ . '/../Models/SubDataModel.php';
 require_once __DIR__ . '/../Models/VirtualModel.php';
 require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
+require_once __DIR__ . '/../Models/AccessModel.php';
 
 class DataController extends MainController
 {
     private $subDataModel;
+    private $accessModel;
     public function __construct()
     {
         $this->subDataModel = new SubDataModel();
+        $this->accessModel = new AccessModel();
         parent::__construct(new DataModel());
     }
 
@@ -95,5 +98,31 @@ class DataController extends MainController
         unset($updatedData["id"]);
         unset($updatedData["personID"]);
         response($updatedData);
+    }
+
+    public function delete($vID)
+    {
+        $dataVID = sanitizeId($vID);
+        $data = $this->model->getWhere(["vID" => $dataVID, "personID" => AuthMiddleware::$person["id"]])[0];
+        if (!$data) {
+            response(NULL, 404, "Data not found or you are not authorized to update subdata for this data.");
+        }
+
+        $deletedData = $this->model->delete($data["id"]);
+        if ($deletedData) {
+            // DELETE SUBDATAS
+            $subDatas = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id");
+            foreach ($subDatas as $subData) {
+                $this->subDataModel->delete($subData["id"]);
+            }
+            // DELETE ACCESS REQUESTS
+            $accesssRequests = $this->accessModel->getWhere(["entityID" => $data["id"], "type" => "d"], "id");
+            foreach ($accesssRequests as $accessRequest) {
+                $this->accessModel->delete($accessRequest["id"]);
+            }
+            response(NULL, 200, "Data deleted.");
+        } else {
+            response(NULL, 500, "Internal Server Error.");
+        }
     }
 }

@@ -65,6 +65,9 @@ return [
             'subdata' => [
                 ''      => ['SubDataController', 'delete'],     // DELETE /subdata?dataID={dataID}&subDataID={subDataID}
             ],
+            'data' => [
+                '{id}'      => ['DataController', 'delete'],        // DELETE /data/{id}
+            ],
         ]
     ]
 ];
