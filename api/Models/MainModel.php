@@ -75,7 +75,7 @@ class MainModel
         if (!$stmt->execute($data)) {
             return false;
         } else if ($stmt->rowCount() === 0) {
-            response(NULL, 304);
+            response(NULL, 208);
         }
 
         return $returnData ? $this->getById($id) : true;
