@@ -40,10 +40,10 @@ class DataModel extends MainModel
             unset($where["accessLevelID"]);
         }
 
-        $datas = $this->getWhere($where, "id, vID, creationTime, releaseTime, title, isPassive, accessTypeID, accessLevelID");
+        $datas = $this->getWhere($where, "id, vID, note, creationTime, releaseTime, title, isPassive, accessTypeID, accessLevelID");
 
-        $count = 0;
         foreach ($datas as $key => $data) {
+            $count = 0;
             if ($accessLevelID <= 1) $count += $this->subDataModel->count(["dataID" => $data["id"], "accessLevelID" => 1]);
             if ($accessLevelID <= 2) $count += $this->subDataModel->count(["dataID" => $data["id"], "accessLevelID" => 2]);
             if ($accessLevelID <= 3) $count += $this->subDataModel->count(["dataID" => $data["id"], "accessLevelID" => 3]);
