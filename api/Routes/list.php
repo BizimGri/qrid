@@ -51,6 +51,9 @@ return [
             ]
         ],
         'PUT' => [
+            'person' => [
+                'profile'   => ['PersonController', 'update'],
+            ],
             'data' => [
                 '{id}'      => ['DataController', 'update'],        // PUT /data/{id}
             ],

@@ -31,8 +31,6 @@ class PersonController extends MainController
 
     function login()
     {
-        require_once __DIR__ . '/../Helpers/JwtHandler.php';
-
         checkRequiredParams(['email', 'password'], $this->params);
 
         if (!$this->model->exists(["email" => $this->params['email']])) {
@@ -45,38 +43,16 @@ class PersonController extends MainController
             response(NULL, 401, "Invalid login credentials.");
         }
 
-        $payload = [
-            'id' => $person[0]['id'],
-            "vID" => $person[0]['vID'],
-            'name' => $person[0]['name'],
-            'email' => $person[0]['email'],
-            'exp' => time() + (60 * 60 * 24) // Token will be valid for 24 hours
-        ];
+        unset($person[0]["password"]);
+        $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
 
-        $jwt = JwtHandler::encode($payload);
-
-        $setCookieCheck = setcookie("jwt_token", $jwt, [
-            "expires" => time() + 86400,
-            "path" => "/",
-            "httponly" => true,  // Disable JavaScript access
-            "secure" => true,    // Require HTTPS
-            "samesite" => "None" // Allow cross-site requests
-        ]);
-
-        // response(["token" => $jwt], 200, "Login successful.");
-        if ($setCookieCheck) response($payload, 200, "Login successful.");
+        if ($cookieStatus) response($person[0], 200, "Login successful.");
         else response(NULL, 500, "Internal Server Error");
     }
 
     function logout()
     {
-        setcookie("jwt_token", "", [
-            "expires" => time() - 3600,  // Past time
-            "path" => "/",
-            "httponly" => true,
-            "secure" => true,
-            "samesite" => "None"
-        ]);
+        $this->refreshCookie(NULL, "jwt_token", true);
         response(NULL, 200, "Logout successful.");
     }
 
@@ -88,5 +64,63 @@ class PersonController extends MainController
     function profile()
     {
         response(AuthMiddleware::$person, 200, "Profile fetched.");
+    }
+
+    function update()
+    {
+        if (count($this->params) == 0) response(NULL, 400, 'Missing required parameters');
+
+        // New vID process 
+        if ($this->params["newID"] === true) {
+            $newID = $this->generateUniqueVid();
+            $newData = [
+                "vID" => $newID
+            ];
+            $result = $this->model->update(AuthMiddleware::$person["id"], $newData, true);
+            if ($result) {
+                $payload = [
+                    'id' => $result['id'],
+                    "vID" => $result['vID'],
+                    'name' => $result['name'],
+                    'email' => $result['email'],
+                ];
+                $this->refreshCookie($payload, "jwt_token");
+                response($payload, 200, 'New id setted!');
+            } else response(NULL, 500);
+        }
+
+        if (isset($this->params["accessTypeID"])) {
+            if (
+                !in_array(
+                    $this->params["accessTypeID"],
+                    [ApiConstants::getWord("accessTypes", "private"), ApiConstants::getWord("accessTypes", "shared"), ApiConstants::getWord("accessTypes", "public")]
+                )
+            ) response(NULL, 400, 'Invalid parameter!');
+            $newData = [
+                "accessTypeID" => $this->params["accessTypeID"]
+            ];
+            $result = $this->model->update(AuthMiddleware::$person["id"], $newData, true);
+            if ($result) response();
+            else response(NULL, 500);
+        }
+
+        $newData = [];
+        if ($this->params["name"]) $newData["name"] = $this->params["name"];
+        if ($this->params["nickname"]) $newData["nickname"] = $this->params["nickname"];
+        if ($this->params["officialID"]) $newData["officialID"] = $this->params["officialID"];
+        if ($this->params["phoneNo"]) $newData["phoneNo"] = $this->params["phoneNo"];
+        if ($this->params["job"]) $newData["job"] = $this->params["job"];
+
+        if (count($newData)) {
+            $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
+            $payload = [
+                'id' => $result['id'],
+                "vID" => $result['vID'],
+                'name' => $result['name'],
+                'email' => $result['email'],
+            ];
+            $this->refreshCookie($payload, "jwt_token");
+            response($payload);
+        } else response(NULL, 400, 'Missing required parameters');
     }
 }

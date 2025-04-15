@@ -1,4 +1,4 @@
-<?php
+<?php require_once __DIR__ . '/../Helpers/JwtHandler.php';
 
 class MainController
 {
@@ -10,22 +10,6 @@ class MainController
         $this->model = $model;
         $this->params = getRequestParams();
     }
-
-    // public function getById($id)
-    // {
-    //     $result = $this->model->getById($id);
-    //     $result ? response($result) : response(NULL, 404, "Not Found");
-    // }
-    //
-    // public function create($data)
-    // {
-    //     $data = $this->model->create($data);
-    //     if ($data) {
-    //         response($data, 201, "Created.");
-    //     } else {
-    //         response(NULL, 500, "Internal Server Error");
-    //     }
-    // }
 
     public function generateUniqueVid($type = "vID")
     {
@@ -41,5 +25,37 @@ class MainController
         }
 
         return $vID;
+    }
+
+    public function refreshCookie($payloadData, $cookieKey, $logout = false)
+    {
+        if (!empty($payloadData)) {
+            $exp = time() + 86400; // Token will be valid for 24 hours
+            $payload = [
+                'id' => $payloadData['id'],
+                "vID" => $payloadData['vID'],
+                'name' => $payloadData['name'],
+                'email' => $payloadData['email'],
+                'exp' => $exp
+            ];
+
+            $jwt = JwtHandler::encode($payload);
+        }
+
+        $cookieData = [
+            "path" => "/",
+            "httponly" => true,
+            "secure" => true,
+            "samesite" => "None"
+        ];
+
+        if ($logout) {
+            $cookieData["expires"] = time() - 3600;  // Past time
+            $jwt = "";
+        } else {
+            $cookieData["expires"] = $exp;
+        }
+
+        return setcookie($cookieKey, $jwt, $cookieData);
     }
 }
