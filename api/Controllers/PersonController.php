@@ -113,7 +113,7 @@ class PersonController extends MainController
             }
         }
 
-        if (count($newData)) {
+        if (count($newData) > 0) {
             $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
             $payload = [
                 'id' => $result['id'],
