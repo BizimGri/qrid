@@ -105,11 +105,13 @@ class PersonController extends MainController
         }
 
         $newData = [];
-        if ($this->params["name"]) $newData["name"] = $this->params["name"];
-        if ($this->params["nickname"]) $newData["nickname"] = $this->params["nickname"];
-        if ($this->params["officialID"]) $newData["officialID"] = $this->params["officialID"];
-        if ($this->params["phoneNo"]) $newData["phoneNo"] = $this->params["phoneNo"];
-        if ($this->params["job"]) $newData["job"] = $this->params["job"];
+
+        foreach ($this->params as $key => $value) {
+            if (in_array($key, ["name", "nickname", "officialID", "phoneNo", "job"])) {
+                if (is_string($value) && strlen($value) > 0) $newData[$key] = $value;
+                else $newData[$key] = NULL;
+            }
+        }
 
         if (count($newData)) {
             $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
