@@ -66,6 +66,13 @@ class PersonController extends MainController
         response(AuthMiddleware::$person, 200, "Profile fetched.");
     }
 
+    function profileDetails()
+    {
+        $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "id, vID, email, name, nickname, officialID, phoneNo, job, accessTypeID");
+        if ($person) response($person[0]);
+        else response(NULL, 404);
+    }
+
     function update()
     {
         if (count($this->params) == 0) response(NULL, 400, 'Missing required parameters');
@@ -76,19 +83,10 @@ class PersonController extends MainController
             $newData = [
                 "vID" => $newID
             ];
-            $result = $this->model->update(AuthMiddleware::$person["id"], $newData, true);
-            if ($result) {
-                $payload = [
-                    'id' => $result['id'],
-                    "vID" => $result['vID'],
-                    'name' => $result['name'],
-                    'email' => $result['email'],
-                ];
-                $this->refreshCookie($payload, "jwt_token");
-                response($payload, 200, 'New id setted!');
-            } else response(NULL, 500);
+            $this->updateResponse($newData);
         }
 
+        // Access Type Changing...
         if (isset($this->params["accessTypeID"])) {
             if (
                 !in_array(
@@ -99,13 +97,11 @@ class PersonController extends MainController
             $newData = [
                 "accessTypeID" => $this->params["accessTypeID"]
             ];
-            $result = $this->model->update(AuthMiddleware::$person["id"], $newData, true);
-            if ($result) response();
-            else response(NULL, 500);
+            $this->updateResponse($newData);
         }
 
+        // Other new datas process
         $newData = [];
-
         foreach ($this->params as $key => $value) {
             if (in_array($key, ["name", "nickname", "officialID", "phoneNo", "job"])) {
                 if (is_string($value) && strlen($value) > 0) $newData[$key] = $value;
@@ -114,7 +110,16 @@ class PersonController extends MainController
         }
 
         if (count($newData) > 0) {
-            $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
+            $this->updateResponse($newData);
+        } else response(NULL, 400, 'Missing required parameters');
+    }
+
+    function updateResponse($newData)
+    {
+        $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
+
+        if ($result) {
+            $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "id, vID, email, name, nickname, officialID, phoneNo, job, accessTypeID");
             $payload = [
                 'id' => $result['id'],
                 "vID" => $result['vID'],
@@ -122,7 +127,7 @@ class PersonController extends MainController
                 'email' => $result['email'],
             ];
             $this->refreshCookie($payload, "jwt_token");
-            response($payload);
-        } else response(NULL, 400, 'Missing required parameters');
+            response($person[0]);
+        } else response(NULL, 500);
     }
 }

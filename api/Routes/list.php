@@ -30,8 +30,9 @@ return [
                 'all'       => ['AccessController', 'getAll'],      // GET /access  
             ],
             'person' => [
-                'logout'          => ['PersonController', 'logout'],      // GET /person/logout
-                'profile'         => ['PersonController', 'profile'],     // GET /person/profile
+                'logout'          => ['PersonController', 'logout'],         // GET /person/logout
+                'profile'         => ['PersonController', 'profile'],        // GET /person/profile
+                'profile-details' => ['PersonController', 'profileDetails'], // GET /person/profile
             ]
         ],
         'POST' => [
