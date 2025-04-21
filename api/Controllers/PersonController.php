@@ -23,7 +23,8 @@ class PersonController extends MainController
             "vID" => $vID,
             "name" => $this->params['name'],
             "email" => $this->params['email'],
-            "password" => hashPassword($this->params['password'])
+            "password" => hashPassword($this->params['password']),
+            "encryptionKey" => bin2hex(random_bytes(32))
         ];
 
         $this->model->create($person, false) ? response([], 201, "Person created.") : response(NULL, 500, "Internal Server Error");
@@ -63,7 +64,17 @@ class PersonController extends MainController
 
     function profile()
     {
-        response(AuthMiddleware::$person, 200, "Profile fetched.");
+        $person = AuthMiddleware::$person;
+        $personEncryptionKey = $this->model->getWhere(["id" => $person["id"]], "encryptionKey");
+        $person["encryptionKey"] = $personEncryptionKey[0]["encryptionKey"];
+        if (empty($person["encryptionKey"])) {
+            $person["encryptionKey"] = bin2hex(random_bytes(32));
+            $newData = [
+                "encryptionKey" => $person["encryptionKey"]
+            ];
+            $this->model->update($person["id"], $newData);
+        }
+        response($person, 200, "Profile fetched.");
     }
 
     function profileDetails()
