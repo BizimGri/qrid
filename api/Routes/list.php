@@ -14,6 +14,9 @@ return [
             'access' => [
                 'data',
                 'person'
+            ],
+            'metric' => [
+                'getAll'
             ]
         ]
     ],
@@ -33,6 +36,9 @@ return [
                 'logout'          => ['PersonController', 'logout'],         // GET /person/logout
                 'profile'         => ['PersonController', 'profile'],        // GET /person/profile
                 'profile-details' => ['PersonController', 'profileDetails'], // GET /person/profile
+            ],
+            'metric' => [
+                'getAll'          => ['MetricController', 'getAll']
             ]
         ],
         'POST' => [

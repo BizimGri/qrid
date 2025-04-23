@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../Models/AccessModel.php';
 require_once __DIR__ . '/../Models/DataModel.php';
-require_once __DIR__ . '/../Models/DataModel.php';
+require_once __DIR__ . '/../Models/SubDataModel.php';
 require_once __DIR__ . '/../Models/PersonModel.php';
 require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
 

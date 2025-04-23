@@ -273,3 +273,26 @@ function createLog($type, $message)
     // Optional: Uncomment the following line to log to the terminal
     // error_log($logMessage);
 }
+
+function getMetric()
+{
+    $metricFile = __DIR__ . '/../Storage/Metrics/metrics.json';
+    $metricDuration = 60; // saniye
+
+    if (file_exists($metricFile) && (time() - filemtime($metricFile)) < $metricDuration) {
+        return json_decode(file_get_contents($metricFile));
+    } else return false;
+}
+
+function createMetric($data)
+{
+    if (!is_dir(__DIR__ . '/../Storage/Metrics')) {
+        mkdir(__DIR__ . '/../Storage/Metrics', 0755, true);
+    }
+
+    $metricFile = __DIR__ . '/../Storage/Metrics/metrics.json';
+
+    file_put_contents($metricFile, json_encode($data));
+    $data["new"] = true;
+    return $data;
+}

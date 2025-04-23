@@ -7,3 +7,4 @@ require_once __DIR__ . '/../Controllers/PersonController.php';
 require_once __DIR__ . '/../Controllers/DataController.php';
 require_once __DIR__ . '/../Controllers/SubDataController.php';
 require_once __DIR__ . '/../Controllers/AccessController.php';
+require_once __DIR__ . '/../Controllers/MetricController.php';
