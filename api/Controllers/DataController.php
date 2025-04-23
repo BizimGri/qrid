@@ -65,11 +65,26 @@ class DataController extends MainController
         ];
 
         $createdData = $this->model->create($data);
-        unset($createdData["id"]);
-        unset($createdData['personID']);
-        $createdData["accessType"] = $accessType["title"];
-        $createdData["accessLevel"] = $accessLevel["title"];
-        $createdData ? response($createdData, 201, "Data created.") : response(NULL, 500, "Internal Server Error");
+        if (!empty($createdData)) {
+            if (!empty($this->params["subDatas"])) {
+                foreach ($this->params["subDatas"] as $value) {
+                    $subData = [
+                        "dataID" => $createdData["id"],
+                        "subDataTypeID" => $value['subDataTypeID'],
+                        "accessLevelID" => $value['accessLevelID'],
+                        "sdKey" => $value['sdKey'],
+                        "sdValue" => $value['sdValue']
+                    ];
+
+                    $this->subDataModel->create($subData);
+                }
+            }
+            unset($createdData["id"]);
+            unset($createdData['personID']);
+            $createdData["accessType"] = $accessType["title"];
+            $createdData["accessLevel"] = $accessLevel["title"];
+            response($createdData, 201, "Data created.");
+        } else response(NULL, 500, "Internal Server Error");
     }
 
     public function update($vID)
