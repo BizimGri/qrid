@@ -71,6 +71,8 @@ class AccessController extends MainController
                         response($data);
                     } else if ($result["isApproved"] == 0) {
                         response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
+                    } else if ($result["isApproved"] == -1) {
+                        response(["recommendation" => "request_rejected"], 200, "Access request denied.");
                     }
                 } else {
                     response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
@@ -110,6 +112,8 @@ class AccessController extends MainController
                         response($data);
                     } else if ($result["isApproved"] == 0) {
                         response(["recommendation" => "wait_for_approvision"], 200, "The access request has not yet been approved.");
+                    } else if ($result["isApproved"] == -1) {
+                        response(["recommendation" => "request_rejected"], 200, "Access request denied.");
                     }
                 } else {
                     response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
