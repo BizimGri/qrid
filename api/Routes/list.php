@@ -55,6 +55,9 @@ return [
             ],
             'access' => [
                 'request'   => ['AccessController', 'create'],       // POST /access/request
+            ],
+            'feedback' => [
+                ''          => ['FeedbackController', 'create'],
             ]
         ],
         'PUT' => [
