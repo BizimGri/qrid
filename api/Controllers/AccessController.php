@@ -75,7 +75,7 @@ class AccessController extends MainController
                         response(["recommendation" => "request_rejected"], 200, "Access request denied.");
                     }
                 } else {
-                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
+                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request", "name" => $person["name"]], 200, "create access request.");
                 }
             } else {
                 response(["accessTypeID" => $this->sharedID, "recommendation" => "login"], 200, "person shared, login and create access request.");
@@ -116,7 +116,7 @@ class AccessController extends MainController
                         response(["recommendation" => "request_rejected"], 200, "Access request denied.");
                     }
                 } else {
-                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request"], 200, "create access request.");
+                    response(["accessTypeID" => $this->sharedID, "recommendation" => "craete_access_request", "note" => $data["note"]], 200, "create access request.");
                 }
             } else {
                 response(["accessTypeID" => $this->sharedID, "recommendation" => "login"], 200, "data shared, login and create access request.");
