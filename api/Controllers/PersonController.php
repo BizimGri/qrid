@@ -9,9 +9,9 @@ class PersonController extends MainController
         parent::__construct(new PersonModel());
     }
 
-    function register()
+    function register($params = null)
     {
-        checkRequiredParams(['name', 'email', 'password'], $this->params);
+        checkRequiredParams(['name', 'email', 'password'], $params ?? $this->params);
 
         if ($this->model->exists(["email" => $this->params['email']])) {
             response(NULL, 409, "Email already exists.");
@@ -21,27 +21,48 @@ class PersonController extends MainController
 
         $person = [
             "vID" => $vID,
-            "name" => $this->params['name'],
-            "email" => $this->params['email'],
-            "password" => hashPassword($this->params['password']),
+            "name" => $params["name"] ?? $this->params['name'],
+            "email" => $params["email"] ?? $this->params['email'],
+            "password" => hashPassword($params["params"] ?? $this->params['password']),
             "encryptionKey" => bin2hex(random_bytes(32))
         ];
 
-        $this->model->create($person, false) ? response([], 201, "Person created.") : response(NULL, 500, "Internal Server Error");
+        $result = $this->model->create($person, false);
+        if (empty($params)) {
+            if ($result) response([], 201, "Person created.");
+            else response(NULL, 500, "Internal Server Error");
+        } else return $person;
     }
 
     function login()
     {
         checkRequiredParams(['email', 'password'], $this->params);
 
-        if (!$this->model->exists(["email" => $this->params['email']])) {
+        if (!empty($this->params["details"])) {
+            $social = $this->params["details"]["social"] ?? false;
+        }
+
+        $user_check = !$this->model->exists(["email" => $this->params['email']]);
+
+        if (!$social && $user_check) {
             response(NULL, 404, "Person not found.");
         }
 
         $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email, password");
 
-        if (!verifyPassword($this->params['password'], $person[0]['password'])) {
-            response(NULL, 401, "Invalid login credentials.");
+        if (empty($person) && $social) {
+            $result = $this->register([
+                "name" => $this->params["details"]["name"],
+                "email" => $this->params["email"],
+                "password" => $this->params["password"]
+            ]);
+            
+            if ($result) $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
+            else response(500);
+        } else {
+            if (!$social && !verifyPassword($this->params['password'], $person[0]['password'])) {
+                response(NULL, 401, "Invalid login credentials.");
+            }
         }
 
         unset($person[0]["password"]);
