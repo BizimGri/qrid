@@ -57,14 +57,18 @@ class PersonController extends MainController
                 "password" => $this->params["password"]
             ]);
             
-            if ($result) $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
+            if ($result) {
+                $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
+                if($person) $person[0]["first_login"] = true;
+            }
             else response(500);
         } else {
             if (!$social && !verifyPassword($this->params['password'], $person[0]['password'])) {
                 response(NULL, 401, "Invalid login credentials.");
             }
         }
-
+        
+        if($social) $person[0]["social_login"] = true;
         unset($person[0]["password"]);
         $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
 
