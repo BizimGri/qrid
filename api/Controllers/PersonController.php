@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../Models/PersonModel.php';
+require_once __DIR__ . '/../Helpers/mailer.php';
+
 
 class PersonController extends MainController
 {
@@ -26,6 +28,7 @@ class PersonController extends MainController
             "password" => hashPassword($params["params"] ?? $this->params['password']),
             "encryptionKey" => bin2hex(random_bytes(32))
         ];
+        if (!empty($params["emailCode"])) $person["emailCode"] = $params["emailCode"];
 
         $result = $this->model->create($person, false);
         if (empty($params)) {
@@ -56,24 +59,84 @@ class PersonController extends MainController
                 "email" => $this->params["email"],
                 "password" => $this->params["password"]
             ]);
-            
+
             if ($result) {
                 $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
-                if($person) $person[0]["first_login"] = true;
-            }
-            else response(500);
+                if ($person) $person[0]["first_login"] = true;
+            } else response(500);
         } else {
             if (!$social && !verifyPassword($this->params['password'], $person[0]['password'])) {
                 response(NULL, 401, "Invalid login credentials.");
             }
         }
-        
-        if($social) $person[0]["social_login"] = true;
+
+        if ($social) $person[0]["social_login"] = true;
         unset($person[0]["password"]);
         $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
 
         if ($cookieStatus) response($person[0], 200, "Login successful.");
         else response(NULL, 500, "Internal Server Error");
+    }
+
+    function loginWithEmail()
+    {
+        if (!empty($this->params["login-with-email"])) {
+            checkRequiredParams(["login-with-email", "email", "password", "name"], $this->params);
+
+            $user_check = !$this->model->exists(["email" => $this->params['email']]);
+
+            $code = strtoupper(generateVid(6));
+            if ($user_check) {
+                $result = $this->register([
+                    "name" => $this->params["name"],
+                    "email" => $this->params["email"],
+                    "password" => $this->params["password"],
+                    "emailCode" => $code
+                ]);
+
+                if ($result) {
+                    $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
+                    if ($person) $person[0]["first_login"] = true;
+                } else response(500);
+            } else {
+                $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email, emailCode, lastLoginTime");
+                $diff = strtotime('now') - strtotime($person[0]["lastLoginTime"]);
+                if (!empty($person[0]["emailCode"]) && $diff < 180) {
+                    response(NULL, 202);
+                }
+                if ($person) $this->model->update($person[0]["id"], ["emailCode" => $code]);
+            }
+
+            // SEND EMAIL...
+            try {
+                $mail = createMailer();
+                $mail->addAddress($this->params["email"]);
+                $mail->Subject = 'Login Code: ' . $code;
+                $mail->Body = "Login Code: $code\n\nThis code is valid for 3 minutes.";
+                $mail->send();
+            } catch (Exception $e) {
+                // response(['error' => 'E-posta gönderilemedi!', 'debug' => $e->getMessage()], 204);
+                response(NULL, 500);
+            }
+
+            response($person["0"]["first_login"] ? ["first_login" => true] : NULL, 200, "Email sent.");
+        } else if (!empty($this->params["email-code"])) {
+            checkRequiredParams(["email-code", "email"], $this->params);
+            $person = $this->model->getWhere(["email" => $this->params['email'], "emailCode" => $this->params["email-code"]], "id, vID, name, email, lastLoginTime");
+
+            if ($person) {
+                $diff = strtotime('now') - strtotime($person[0]["lastLoginTime"]);
+                if ($diff < 180) {
+                    $person[0]["timeDiff"] = $diff;
+                    $this->model->update($person[0]["id"], ["emailCode" => null]);
+                    $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
+                    if ($cookieStatus) response($person[0], 200, "Login successful.");
+                    else response(NULL, 500, "Internal Server Error");
+                } else response(NULL, 203, "Time of Code has expired!");
+            } else {
+                response(NULL, 400, "Login error!");
+            }
+        }
     }
 
     function logout()

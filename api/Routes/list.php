@@ -6,6 +6,7 @@ return [
         'POST' => [
             'person' => [
                 'login',
+                'emailLogin',
                 'register',
                 'forgot-password'
             ]
@@ -45,6 +46,7 @@ return [
             'person'  => [
                 'register'        => ['PersonController', 'register'],    // POST /person/register
                 'login'           => ['PersonController', 'login'],       // POST /person/login
+                'emailLogin'      => ['PersonController', 'loginWithEmail'],
                 'forgot-password' => ['PersonController', 'forgotPassword'] // POST /person/forgot-password
             ],
             'data' => [

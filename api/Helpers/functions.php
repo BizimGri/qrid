@@ -250,9 +250,9 @@ function verifyPassword($password, $hashedPassword)
  * @return string The generated VID.
  * @example generateVid(); // Returns a unique VID
  */
-function generateVid()
+function generateVid($length = 10)
 {
-    return bin2hex(random_bytes(5));
+    return bin2hex(random_bytes($length/2));
 }
 
 /**
