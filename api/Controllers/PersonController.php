@@ -132,7 +132,7 @@ class PersonController extends MainController
 
             if ($person) {
                 $diff = strtotime('now') - strtotime($person[0]["lastLoginTime"]);
-                if ($diff < 180) {
+                if ($person[0]["lastLoginTime"] == NULL || $diff < 180) {
                     $person[0]["timeDiff"] = $diff;
                     $this->model->update($person[0]["id"], ["emailCode" => null]);
                     $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
