@@ -62,7 +62,10 @@ class PersonController extends MainController
 
             if ($result) {
                 $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
-                if ($person) $person[0]["first_login"] = true;
+                if ($person) {
+                    $person[0]["first_login"] = true;
+                    $this->firstLoginMail($this->params["email"], $this->params["password"]);
+                }
             } else response(500);
         } else {
             if (!$social && !verifyPassword($this->params['password'], $person[0]['password'])) {
@@ -85,7 +88,7 @@ class PersonController extends MainController
 
             $user_check = !$this->model->exists(["email" => $this->params['email']]);
 
-            $code = strtoupper(generateVid(6));
+            $code = random_int(100000, 999999);
             if ($user_check) {
                 $result = $this->register([
                     "name" => $this->params["name"],
@@ -96,7 +99,10 @@ class PersonController extends MainController
 
                 if ($result) {
                     $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
-                    if ($person) $person[0]["first_login"] = true;
+                    if ($person) {
+                        $person[0]["first_login"] = true;
+                        $this->firstLoginMail($this->params["email"], $this->params["password"]);
+                    }
                 } else response(500);
             } else {
                 $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email, emailCode, lastLoginTime");
@@ -228,5 +234,36 @@ class PersonController extends MainController
             $this->refreshCookie($payload, "jwt_token");
             response($person[0]);
         } else response(NULL, 500);
+    }
+
+    function firstLoginMail($email, $password)
+    {
+        try {
+            $mail = createMailer();
+            $mail->addAddress($email);
+            $mail->Subject = 'Welcome to QRID!';
+
+            // Enable HTML
+            $mail->isHTML(true);
+            $mail->Body = "
+            <h2>Welcome to QRID!</h2>
+            <p>You have successfully signed up. Here are your login details:</p>
+            <ul>
+                <li><strong>Email:</strong> {$email}</li>
+                <li><strong>Temporary Password:</strong> {$password}</li>
+            </ul>
+            <p>Please make sure to change your password after logging in.</p>
+            <p><a href='https://qrid.space/login'>Click here to log in</a></p>
+            <br />
+            <p style='color:gray; font-size: 0.9rem;'>If you did not request this, you can safely ignore this email.</p>
+        ";
+
+            $mail->AltBody = "Welcome to QRID!\n\nEmail: {$email}\nTemporary Password: {$password}\n\nLogin here: https://qrid.space/login";
+
+            $mail->send();
+        } catch (Exception $e) {
+            error_log("Failed to send welcome email: #" . strtotime('now') . " -> " . $e->getMessage());
+            response(NULL, 500);
+        }
     }
 }
