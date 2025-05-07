@@ -68,7 +68,10 @@ function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
     $baseRoute = $uriSegments[0] ?? '';
 
     // If it's not a public route, run AuthMiddleware
-    if (!in_array($uriSegments[1] ?? '', $publicRoutes[$requestMethod][$baseRoute])) {
+    if (
+        empty($publicRoutes[$requestMethod][$baseRoute])
+        || !in_array($uriSegments[1] ?? '', $publicRoutes[$requestMethod][$baseRoute])
+    ) {
         AuthMiddleware::handle();
     }
 
@@ -275,7 +278,7 @@ function verifyPassword($password, $hashedPassword)
  */
 function generateVid($length = 10)
 {
-    return bin2hex(random_bytes($length/2));
+    return bin2hex(random_bytes($length / 2));
 }
 
 /**
