@@ -20,8 +20,8 @@ class MainController
         } while ($this->model->exists(["vID" => $vID]) && $vIDCount++ < 5);
 
         if ($vIDCount >= 5) {
+            response(NULL, 500, "Internal Server Error", true);
             createLog("ERROR", "Failed to generate a unique VID for ({$type}) after 5 attempts.");
-            response(NULL, 500, "Internal Server Error");
         }
 
         return $vID;

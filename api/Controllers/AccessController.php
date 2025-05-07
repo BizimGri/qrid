@@ -5,6 +5,8 @@ require_once __DIR__ . '/../Models/DataModel.php';
 require_once __DIR__ . '/../Models/SubDataModel.php';
 require_once __DIR__ . '/../Models/PersonModel.php';
 require_once __DIR__ . '/../Middlewares/AuthMiddleware.php';
+require_once __DIR__ . '/../Helpers/mailer.php';
+
 
 class AccessController extends MainController
 {
@@ -173,8 +175,13 @@ class AccessController extends MainController
             ];
 
             $access = $this->model->create($accessData);
-            if ($access) response($access, 201, "Access request created.");
-            else response(NULL, 500, "Access request could not be created.");
+
+            if ($access) {
+                response($access, 201, "Access request created.", true);
+                // Sending email for request
+                $dataOwner = $this->personModel->getById($data["personID"], "email");
+                $this->requestAccessMail($dataOwner["email"], AuthMiddleware::$person["name"], $data["title"], $type);
+            } else response(NULL, 500, "Access request could not be created.");
         } else if ($type == ApiConstants::getWord("entityTypes", "person")) {
             $person = $this->personModel->getByVID($vID);
             if (!$person) response(NULL, 404, "Person not found.");
@@ -190,8 +197,12 @@ class AccessController extends MainController
             ];
 
             $access = $this->model->create($accessData);
-            if ($access) response($access, 201, "Access request created.");
-            else response(NULL, 500, "Access request could not be created.");
+
+            if ($access) {
+                response($access, 201, "Access request created.", true);
+                // Sending email for request
+                $this->requestAccessMail($person["email"], AuthMiddleware::$person["name"], $person["name"], $type);
+            } else response(NULL, 500, "Access request could not be created.");
         } else {
             response(400, "Invalid type.");
         }
@@ -206,7 +217,7 @@ class AccessController extends MainController
         if (!$accessRequest) response(NULL, 404, "Access request not found.");
 
         if ($type == ApiConstants::getWord("entityTypes", "data")) {
-            $data = $this->dataModel->getById($this->params["entityID"], "personID");
+            $data = $this->dataModel->getById($this->params["entityID"], "personID, title, vID");
             if ($data["personID"] != $personID) {
                 response(NULL, 403, "You are not authorized to approve this request.");
             }
@@ -217,8 +228,20 @@ class AccessController extends MainController
             ];
 
             $result = $this->model->update($this->params["id"], $updatedAccess);
-            if ($result) response($result, 200, "Access request updated.");
-            else response(NULL, 500, "Internal Server Error.");
+
+            if ($result) {
+                response($result, 200, "Access request updated.", true);
+
+                if ($this->params["isApproved"] == 1) {
+                    // Sending email to data owner for approvision
+                    $requestOwner = $this->personModel->getById($accessRequest["personID"], "name, email");
+                    $this->accessGrantedMail(AuthMiddleware::$person["email"], $requestOwner["name"], $data["title"], $type);
+
+                    // Sending email to requester for approvision
+                    $path = "access/data/" . $data["vID"];
+                    $this->notifyRequesterApproved($requestOwner["email"], $path, AuthMiddleware::$person["name"], $data["title"], $type);
+                }
+            } else response(NULL, 500, "Internal Server Error.");
         } else if ($type == ApiConstants::getWord("entityTypes", "person")) {
             if ($personID != $this->params["entityID"]) {
                 response(NULL, 403, "You are not authorized to approve this request.");
@@ -230,10 +253,97 @@ class AccessController extends MainController
             ];
 
             $result = $this->model->update($this->params["id"], $updatedAccess);
-            if ($result) response($result, 200, "Access request updated.");
-            else response(NULL, 500, "Internal Server Error.");
+
+            if ($result) {
+                response($result, 200, "Access request updated.", true);
+                if ($this->params["isApproved"] == 1) {
+                    // Sending email to profile owner for approvision
+                    $requestOwner = $this->personModel->getById($accessRequest["personID"], "name, email");
+                    $this->accessGrantedMail(AuthMiddleware::$person["email"], $requestOwner["name"], AuthMiddleware::$person["name"], $type);
+
+                    // Sending email to requester for approvision
+                    $path = "access/profile/" . AuthMiddleware::$person["vID"];
+                    $this->notifyRequesterApproved($requestOwner["email"], $path, AuthMiddleware::$person["name"], "Profile", $type);
+                }
+            } else response(NULL, 500, "Internal Server Error.");
         } else {
             response(400, "Invalid type.");
+        }
+    }
+
+    function requestAccessMail($email, $requesterName, $resourceName, $type)
+    {
+        $type = $type == "p" ? "Profile" : "Data";
+        try {
+            $mail = createMailer();
+            $mail->addAddress($email);
+            $mail->Subject = "Someone Requested Access to Your QRID {$type}!";
+            $mail->isHTML(true);
+            $mail->Body = "
+            <h2>Access Request Alert</h2>
+            <p><strong>{$requesterName}</strong> has requested access to your {$type} : <strong>{$resourceName}</strong>.</p>
+            <p>Please review this request and decide whether to grant or deny access.</p>
+            <p><a href='https://qrid.space/access-requests'>Review Requests</a></p>
+            <br />
+            <p style='color:gray; font-size: 0.9rem;'>If you believe this was a mistake or need assistance, contact us at support@qrid.space.</p>
+        ";
+            $mail->AltBody = "{$requesterName} has requested access to your {$type}: {$resourceName}";
+
+            $mail->send();
+        } catch (Exception $e) {
+            response(NULL, 500, "", true);
+            error_log("Failed to send access request email: #" . strtotime('now') . " -> " . $e->getMessage());
+        }
+    }
+
+    function accessGrantedMail($email, $requesterName, $resourceName, $type)
+    {
+        $type = $type == "p" ? "Profile" : "Data";
+        try {
+            $mail = createMailer();
+            $mail->addAddress($email);
+            $mail->Subject = 'You Approved an Access Request';
+
+            $mail->isHTML(true);
+            $mail->Body = "
+            <h2>Access Request Approved</h2>
+            <p>You have successfully approved <strong>{$requesterName}</strong>'s request to access <strong>{$resourceName}</strong>.</p>
+            <p>This person now has access to the requested information.</p>
+            <br />
+            <p style='color:gray; font-size: 0.9rem;'>If you did not intend to approve this access, please contact our support team (support@qrid.space) immediately.</p>
+        ";
+            $mail->AltBody = "You approved access for {$requesterName} to your {$type}: {$resourceName}";
+
+            $mail->send();
+        } catch (Exception $e) {
+            response(NULL, 500, "", true);
+            error_log("Failed to send access approval email: #" . strtotime('now') . " -> " . $e->getMessage());
+        }
+    }
+
+    function notifyRequesterApproved($email, $path, $ownerName, $resourceName, $type)
+    {
+        $type = $type == "p" ? "Profile" : "Data";
+        try {
+            $mail = createMailer();
+            $mail->addAddress($email);
+            $mail->Subject = 'Your Access Request Has Been Approved';
+
+            $mail->isHTML(true);
+            $mail->Body = "
+            <h2>Access Approved</h2>
+            <p><strong>{$ownerName}</strong> has approved your request to access the following {$type}: <strong>{$resourceName}</strong>.</p>
+            <p>You can now view the {$type} by logging into your QRID account.</p>
+            <p><a href='https://qrid.space/{$path}'>Go to Shared {$type}!</a></p>
+            <br />
+            <p style='color:gray; font-size: 0.9rem;'>If you did not request this access, please contact us at support@qrid.space.</p>
+        ";
+            $mail->AltBody = "{$ownerName} approved your request to access: {$resourceName}";
+
+            $mail->send();
+        } catch (Exception $e) {
+            response(NULL, 500, "", true);
+            error_log("Failed to notify requester (approved): #" . strtotime('now') . " -> " . $e->getMessage());
         }
     }
 }

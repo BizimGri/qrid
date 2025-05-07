@@ -5,9 +5,9 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
 
 # PHP Hata Gösterimini Kapat
-#php_flag display_errors Off
-#php_flag log_errors On
-#php_value error_log "Storage/Logs/php_error.log"
+php_flag display_errors Off
+php_flag log_errors On
+php_value error_log "Storage/Logs/php_error.log"
 
 #Halihazırda sunucu tarafında ayarlı olduğu için yorum olarak bırakıldı
 

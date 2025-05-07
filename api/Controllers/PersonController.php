@@ -64,7 +64,6 @@ class PersonController extends MainController
                 $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
                 if ($person) {
                     $person[0]["first_login"] = true;
-                    $this->firstLoginMail($this->params["email"], $this->params["password"]);
                 }
             } else response(500);
         } else {
@@ -77,8 +76,10 @@ class PersonController extends MainController
         unset($person[0]["password"]);
         $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
 
-        if ($cookieStatus) response($person[0], 200, "Login successful.");
-        else response(NULL, 500, "Internal Server Error");
+        if ($cookieStatus) {
+            response($person[0], 200, "Login successful.", true);
+            if ($person[0]["first_login"] == true) $this->firstLoginMail($this->params["email"], $this->params["password"]);
+        } else response(NULL, 500, "Internal Server Error");
     }
 
     function loginWithEmail()
@@ -101,7 +102,6 @@ class PersonController extends MainController
                     $person = $this->model->getWhere(["email" => $this->params['email']], "id, vID, name, email");
                     if ($person) {
                         $person[0]["first_login"] = true;
-                        $this->firstLoginMail($this->params["email"], $this->params["password"]);
                     }
                 } else response(500);
             } else {
@@ -113,6 +113,8 @@ class PersonController extends MainController
                 if ($person) $this->model->update($person[0]["id"], ["emailCode" => $code]);
             }
 
+            response($person["0"]["first_login"] ? ["first_login" => true] : NULL, 200, "Email sent.", true);
+            if ($person[0]["first_login"] == true) $this->firstLoginMail($this->params["email"], $this->params["password"]);
             // SEND EMAIL...
             try {
                 $mail = createMailer();
@@ -121,11 +123,9 @@ class PersonController extends MainController
                 $mail->Body = "Login Code: $code\n\nThis code is valid for 3 minutes.";
                 $mail->send();
             } catch (Exception $e) {
-                // response(['error' => 'E-posta gönderilemedi!', 'debug' => $e->getMessage()], 204);
-                response(NULL, 500);
+                response(NULL, 500, "", true);
+                error_log("Failed to send login code email: #" . strtotime('now') . " -> " . $e->getMessage());
             }
-
-            response($person["0"]["first_login"] ? ["first_login" => true] : NULL, 200, "Email sent.");
         } else if (!empty($this->params["email-code"])) {
             checkRequiredParams(["email-code", "email"], $this->params);
             $person = $this->model->getWhere(["email" => $this->params['email'], "emailCode" => $this->params["email-code"]], "id, vID, name, email, lastLoginTime");
@@ -262,8 +262,8 @@ class PersonController extends MainController
 
             $mail->send();
         } catch (Exception $e) {
+            response(NULL, 500, "", true);
             error_log("Failed to send welcome email: #" . strtotime('now') . " -> " . $e->getMessage());
-            response(NULL, 500);
         }
     }
 }

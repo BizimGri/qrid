@@ -10,10 +10,12 @@
  * @example response(['name' => 'Ahmet KARACA'], 200, 'OK');
  * @example response([], 404, 'Not Found');
  */
-function response($data = [], $status = 200, $message = 'OK')
+function response($data = [], $status = 200, $message = 'OK', $continueProcessing = false)
 {
     http_response_code($status);
-    header('Content-type: application/json; charset=utf-8');
+    header('Content-Type: application/json; charset=utf-8');
+    header("Connection: close");
+
     $response = [
         'status' => $status,
         'message' => $message
@@ -23,9 +25,30 @@ function response($data = [], $status = 200, $message = 'OK')
         $response['data'] = $data;
     }
 
-    echo json_encode($response);
-    exit;
+    $json = json_encode($response);
+    echo $json;
+
+    // Uzun işlemler devam edecekse, istemci bağlantısını sonlandır
+    if ($continueProcessing) {
+        // Buffer'ı temizle ve gönder
+        ob_start();
+        $length = strlen($json);
+        header("Content-Length: $length");
+        ob_end_flush();
+        flush();
+
+        // PHP-FPM ile çalışıyorsan hızlıca işlemi bitir
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        }
+
+        // Kullanıcı bağlantıyı koparsa bile işlem devam etsin
+        ignore_user_abort(true);
+    } else {
+        exit;
+    }
 }
+
 
 // Route matching
 function matchRoute($requestUri, $requestMethod, $apiRoutes, $publicRoutes)
