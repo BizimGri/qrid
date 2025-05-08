@@ -61,7 +61,8 @@ class DataController extends MainController
             "accessTypeID" => $this->params['accessTypeID'],
             "accessLevelID" => $this->params["accessLevelID"],
             "isPassive" => $this->params['isPassive'],
-            "releaseTime" => $this->params['accessTypeID'] == 1 ? date_create()->format('Y-m-d H:i:s') : NULL
+            "releaseTime" => $this->params['accessTypeID'] == 1 ? date_create()->format('Y-m-d H:i:s') : NULL,
+            "type" => !empty($this->params["dataType"]) ? $this->params["dataType"] : NULL
         ];
 
         $createdData = $this->model->create($data);
@@ -107,7 +108,8 @@ class DataController extends MainController
             "accessTypeID" => $this->params["accessTypeID"],
             "accessLevelID" => $this->params["accessLevelID"],
             "isPassive" => $this->params["isPassive"],
-            "releaseTime" => $releaseTime ?? NULL
+            "releaseTime" => $releaseTime ?? NULL,
+            "type" => !empty($this->params["dataType"]) ? $this->params["dataType"] : NULL
         ];
         $updatedData = $this->model->update($data["id"], $newData);
         unset($updatedData["id"]);
