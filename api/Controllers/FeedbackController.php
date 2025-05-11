@@ -6,7 +6,7 @@ class FeedbackController extends MainController
 {
     public function __construct()
     {
-        parent::__construct(new VirtualModel("feedback"));
+        parent::__construct(new VirtualModel("feedbacks"));
     }
 
     public function create()
