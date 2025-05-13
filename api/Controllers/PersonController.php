@@ -168,6 +168,7 @@ class PersonController extends MainController
             ];
             $this->model->update($person["id"], $newData);
         }
+        $person["firebase_token"] = $this->generateFirebaseCustomToken($person["vID"]);
         response($person, 200, "Profile fetched.");
     }
 

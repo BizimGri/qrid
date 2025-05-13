@@ -58,4 +58,43 @@ class MainController
 
         return setcookie($cookieKey, $jwt, $cookieData);
     }
+
+    function generateFirebaseCustomToken($uid)
+    {
+        $serviceAccount = json_decode(file_get_contents(__DIR__ . "/../webrtc-for-qrid-firebase-adminsdk-fbsvc-a7cd1a6e42.json"), true);
+
+        $header = ['alg' => 'RS256', 'typ' => 'JWT'];
+        $payload = [
+            'iss' => $serviceAccount['client_email'],
+            'sub' => $serviceAccount['client_email'],
+            'aud' => 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit',
+            'iat' => time(),
+            'exp' => time() + 3600,
+            'uid' => (string)$uid // Burada string zorluyoruz
+        ];
+
+        $base64url_encode = function ($data) {
+            return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        };
+
+        $sign = function ($input, $privateKeyPem) {
+            openssl_sign($input, $signature, $privateKeyPem, OPENSSL_ALGO_SHA256);
+            return $signature;
+        };
+
+        $headerEncoded = $base64url_encode(json_encode($header, JSON_UNESCAPED_SLASHES));
+        $payloadEncoded = $base64url_encode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+        $signatureInput = $headerEncoded . '.' . $payloadEncoded;
+
+        $privateKey = openssl_pkey_get_private($serviceAccount['private_key']);
+
+        if (!$privateKey) {
+            throw new Exception("Private key yüklenemedi.");
+        }
+
+        $signature = $sign($signatureInput, $privateKey);
+        $signatureEncoded = $base64url_encode($signature);
+
+        return $signatureInput . '.' . $signatureEncoded;
+    }
 }
