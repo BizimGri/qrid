@@ -40,6 +40,9 @@ return [
             ],
             'metric' => [
                 'getAll'          => ['MetricController', 'getAll']
+            ],
+            'chat' => [
+                '{id}'            => ['ChatController', 'getRoom']
             ]
         ],
         'POST' => [
@@ -60,6 +63,9 @@ return [
             ],
             'feedback' => [
                 ''          => ['FeedbackController', 'create'],
+            ],
+            'chat' => [
+                'new'       => ['ChatController', 'create']
             ]
         ],
         'PUT' => [
