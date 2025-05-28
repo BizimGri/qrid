@@ -147,6 +147,8 @@ class PersonController extends MainController
 
     function logout()
     {
+        $logoutData = ["fcmToken" => NULL];
+        $this->model->update(AuthMiddleware::$person["id"], $logoutData);
         $this->refreshCookie(NULL, "jwt_token", true);
         response(NULL, 200, "Logout successful.");
     }
@@ -174,7 +176,7 @@ class PersonController extends MainController
 
     function profileDetails()
     {
-        $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "id, vID, email, name, nickname, officialID, phoneNo, job, accessTypeID");
+        $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "id, vID, email, name, nickname, officialID, phoneNo, job, accessTypeID, fcmToken");
         if ($person) response($person[0]);
         else response(NULL, 404);
     }
@@ -220,6 +222,7 @@ class PersonController extends MainController
         } else response(NULL, 400, 'Missing required parameters');
     }
 
+
     function updateResponse($newData)
     {
         $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
@@ -235,6 +238,23 @@ class PersonController extends MainController
             $this->refreshCookie($payload, "jwt_token");
             response($person[0]);
         } else response(NULL, 500);
+    }
+
+    function getFCMToken()
+    {
+        $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "fcmToken");
+        response($person[0]);
+    }
+
+    function updateFCMToken()
+    {
+        checkRequiredParams(["fcmToken"], $this->params);
+        $newData = [
+            "fcmToken" => $this->params["fcmToken"]
+        ];
+        $result = $this->model->update(AuthMiddleware::$person["id"], $newData);
+        if ($result) response($newData);
+        else response(NULL, 500);
     }
 
     function firstLoginMail($email, $password)

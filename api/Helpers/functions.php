@@ -322,3 +322,105 @@ function createMetric($data)
     $data["new"] = true;
     return $data;
 }
+
+function base64url_encode($data)
+{
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+function getAccessToken()
+{
+    $fcmGoogleFile = __DIR__ . '/../fcm-for-qrid-firebase-adminsdk-fbsvc-1c831d5592.json';
+    $credentials = json_decode(file_get_contents($fcmGoogleFile), true);
+    $header = ['alg' => 'RS256', 'typ' => 'JWT'];
+    $now = time();
+    $payload = [
+        'iss' => $credentials['client_email'],
+        'sub' => $credentials['client_email'],
+        'aud' => 'https://oauth2.googleapis.com/token',
+        'iat' => $now,
+        'exp' => $now + 3600,
+        'scope' => 'https://www.googleapis.com/auth/firebase.messaging'
+    ];
+
+    $base64UrlHeader = base64url_encode(json_encode($header));
+    $base64UrlPayload = base64url_encode(json_encode($payload));
+    $signatureInput = $base64UrlHeader . '.' . $base64UrlPayload;
+
+    openssl_sign($signatureInput, $signature, $credentials['private_key'], 'SHA256');
+    $base64UrlSignature = base64url_encode($signature);
+
+    $jwt = $signatureInput . '.' . $base64UrlSignature;
+
+    $response = file_get_contents('https://oauth2.googleapis.com/token', false, stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => http_build_query([
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => $jwt
+            ])
+        ]
+    ]));
+
+    $responseData = json_decode($response, true);
+    return $responseData['access_token'];
+}
+
+function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
+{
+    $accessToken = getAccessToken();
+    $url = "https://fcm.googleapis.com/v1/projects/fcm-for-qrid/messages:send";
+    $data['click_action'] = "https://qrid.space" . $path;
+
+    $message = [
+        'message' => [
+            'token' => $deviceToken,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+                'image' => "https://qrid.space/qr-code.ico"
+            ],
+            'data' => $data,
+            'webpush' => [
+                'fcm_options' => [
+                    'link' => "https://qrid.space" . $path
+                ]
+            ]
+        ]
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer $accessToken",
+        "Content-Type: application/json"
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    // echo "HTTP CODE: $httpCode\n";
+    // echo "CURL ERROR: $error\n";
+    // echo "Yanıt: $response";
+
+    // $response = file_get_contents($url, false, stream_context_create([
+    //     'http' => [
+    //         'method' => 'POST',
+    //         'header' => "Authorization: Bearer $accessToken\r\n" .
+    //             "Content-Type: application/json\r\n",
+    //         'content' => json_encode($message)
+    //     ]
+    // ]));
+
+    // if ($response === false) {
+    //     $error = error_get_last();
+    //     die(var_dump($error));
+    // }
+    
+    return ["response" => $response, "httpCode" => $httpCode, "error" => $error];
+}
