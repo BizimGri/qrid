@@ -257,6 +257,13 @@ class PersonController extends MainController
         else response(NULL, 500);
     }
 
+    function notificationTest()
+    {
+        $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "fcmToken");
+        $response = sendNotification($person[0]["fcmToken"], "Deneme", "Deneme", "/access-requests", ["x" => "y"]);
+        response($response);
+    }
+
     function firstLoginMail($email, $password)
     {
         try {

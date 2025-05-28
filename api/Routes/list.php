@@ -30,14 +30,15 @@ return [
             ],
             'access' => [
                 'data'   => ['AccessController', 'getData'],         // GET /access/data/{vID}
-                'person'   => ['AccessController', 'getPerson'],         // GET /access/person/{vID}
+                'person'   => ['AccessController', 'getPerson'],     // GET /access/person/{vID}
                 'all'       => ['AccessController', 'getAll'],      // GET /access  
             ],
             'person' => [
-                'logout'          => ['PersonController', 'logout'],         // GET /person/logout
-                'profile'         => ['PersonController', 'profile'],        // GET /person/profile
-                'profile-details' => ['PersonController', 'profileDetails'], // GET /person/profile
-                'fcm-token'       => ['PersonController', 'getFCMToken'], // GET /person/profile
+                'logout'            => ['PersonController', 'logout'],           // GET /person/logout
+                'profile'           => ['PersonController', 'profile'],          // GET /person/profile
+                'profile-details'   => ['PersonController', 'profileDetails'],   // GET /person/profile
+                'fcm-token'         => ['PersonController', 'getFCMToken'],      // GET /person/profile
+                'notification-test' => ['PersonController', 'notificationTest'], // GET /person/profile
             ],
             'metric' => [
                 'getAll'          => ['MetricController', 'getAll']
