@@ -371,6 +371,7 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
 {
     $accessToken = getAccessToken();
     $url = "https://fcm.googleapis.com/v1/projects/fcm-for-qrid/messages:send";
+    if (!empty($data)) $path .= "?notification-data=" . base64_encode(json_encode($data));
     $data['click_action'] = "https://qrid.space" . $path;
 
     $message = [
@@ -381,7 +382,6 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
                 'body' => $body,
                 'image' => "https://qrid.space/qr-code.ico"
             ],
-            'data' => $data,
             'webpush' => [
                 'fcm_options' => [
                     'link' => "https://qrid.space" . $path
@@ -389,6 +389,7 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
             ]
         ]
     ];
+    if (!empty($data)) $message['message']['data'] = ["data" => base64_encode(json_encode($data))];
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -421,6 +422,7 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
     //     $error = error_get_last();
     //     die(var_dump($error));
     // }
-    
+    // return ["response" => $response];
+
     return ["response" => $response, "httpCode" => $httpCode, "error" => $error];
 }
