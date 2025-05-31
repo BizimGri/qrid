@@ -260,7 +260,7 @@ class PersonController extends MainController
     function notificationTest()
     {
         $person = $this->model->getWhere(["id" => AuthMiddleware::$person["id"]], "fcmToken");
-        $response = sendNotification($person[0]["fcmToken"], "Hadi Sohbete!", "Tıkla ve sohbete başla =)", "/", ["x" => "y", "a" => ["b" => "c"]]);
+        $response = sendNotification($person[0]["fcmToken"], "Hadi Sohbete!", "Tıkla ve sohbete başla =)", "/create-qr", ["x" => "y", "a" => ["b" => "c"]]);
         response($response);
     }
 

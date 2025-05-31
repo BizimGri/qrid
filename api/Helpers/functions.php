@@ -371,8 +371,10 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
 {
     $accessToken = getAccessToken();
     $url = "https://fcm.googleapis.com/v1/projects/fcm-for-qrid/messages:send";
+    $data['click_action'] = "https://qrid.space" . $path;
     if (!empty($data)) $path .= "?notification-data=" . base64_encode(json_encode($data));
     $data['click_action'] = "https://qrid.space" . $path;
+
 
     $message = [
         'message' => [
