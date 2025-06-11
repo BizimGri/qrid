@@ -67,7 +67,8 @@ return [
                 ''          => ['FeedbackController', 'create'],
             ],
             'chat' => [
-                'new'       => ['ChatController', 'create']
+                'create'       => ['ChatController', 'create'],
+                'notify'       => ['ChatController', 'notifyOther']
             ]
         ],
         'PUT' => [

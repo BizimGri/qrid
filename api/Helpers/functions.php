@@ -433,3 +433,28 @@ function sendNotification($deviceToken, $title, $body, $path = "/", $data = [])
 
     return ["response" => $response, "httpCode" => $httpCode, "error" => $error];
 }
+
+function sendMail($email, $subject, $body, $altBody = "", $type = "")
+{
+    require_once __DIR__ . "/mailer.php";
+    try {
+        $mail = createMailer();
+        $mail->addAddress($email);
+        $mail->Subject = $subject;
+
+        // Enable HTML
+        $mail->isHTML(true);
+        $mail->Body = $body;
+
+        $mail->AltBody = $altBody;
+
+        $mail->send();
+    } catch (Exception $e) {
+        response(NULL, 500, "", true);
+        error_log("Failed to send email: (" . $type . ") #" . strtotime('now') . " -> " . $e->getMessage());
+    }
+}
+
+function notifyPerson(){
+    
+}

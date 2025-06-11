@@ -266,14 +266,7 @@ class PersonController extends MainController
 
     function firstLoginMail($email, $password)
     {
-        try {
-            $mail = createMailer();
-            $mail->addAddress($email);
-            $mail->Subject = 'Welcome to QRID!';
-
-            // Enable HTML
-            $mail->isHTML(true);
-            $mail->Body = "
+        $body = "
             <h2>Welcome to QRID!</h2>
             <p>You have successfully signed up. Here are your login details:</p>
             <ul>
@@ -285,13 +278,8 @@ class PersonController extends MainController
             <br />
             <p style='color:gray; font-size: 0.9rem;'>If you did not request this, you can safely ignore this email.</p>
         ";
+        $altBody = "Welcome to QRID!\n\nEmail: {$email}\nTemporary Password: {$password}\n\nLogin here: https://qrid.space/login";
 
-            $mail->AltBody = "Welcome to QRID!\n\nEmail: {$email}\nTemporary Password: {$password}\n\nLogin here: https://qrid.space/login";
-
-            $mail->send();
-        } catch (Exception $e) {
-            response(NULL, 500, "", true);
-            error_log("Failed to send welcome email: #" . strtotime('now') . " -> " . $e->getMessage());
-        }
+        sendMail($email, 'Welcome to QRID!', $body, $altBody, "welcome mail");
     }
 }

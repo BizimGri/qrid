@@ -2,14 +2,17 @@
 
 require_once __DIR__ . '/../Models/ChatModel.php';
 require_once __DIR__ . '/../Models/PersonModel.php';
+require_once __DIR__ . '/../Models/DataModel.php';
 
 class ChatController extends MainController
 {
 
     private $personModel;
+    private $dataModel;
     public function __construct()
     {
         $this->personModel = new PersonModel();
+        $this->dataModel = new DataModel();
         parent::__construct(new ChatModel());
     }
 
@@ -38,16 +41,18 @@ class ChatController extends MainController
 
     public function create()
     {
-        checkRequiredParams(["otherVID", "type"], $this->params);
+        checkRequiredParams(["dataVID", "type"], $this->params);
 
         $self = AuthMiddleware::$person["id"];
-        $other = $this->personModel->getByVID($this->params["otherVID"], "id")["id"];
+        $dataOwner = $this->dataModel->getByVID($this->params["dataVID"], "personID")["personID"];
 
-        $room = $this->model->getWhere(["selfID" => $self, "otherID" => $other]);
+        if ($self == $dataOwner) response(NULL, 400, "You cannot craete chat with yourself!");
+
+        $room = $this->model->getWhere(["selfID" => $self, "otherID" => $dataOwner]);
         if (empty($room)) {
             $room = $this->model->create([
                 "selfID" => $self,
-                "otherID" => $other,
+                "otherID" => $dataOwner,
                 "type" => $this->params["type"],
                 "roomName" => generateVid(10)
             ]);
@@ -55,5 +60,47 @@ class ChatController extends MainController
 
         if ($room) response($room);
         else response(NULL, 500);
+    }
+
+    public function notifyOther()
+    {
+        checkRequiredParams(["roomName"], $this->params);
+        $oneHourAgo = new DateTime("-1 hour");
+        $oneMinuteAgo = new DateTime("-1 minute");
+
+        $chat = $this->model->getWhere(["roomName" => $this->params["roomName"]])[0];
+        if ($chat["selfID"] == AuthMiddleware::$person["id"]) {
+            $other = $this->personModel->getById($chat["otherID"], "name, email, fcmToken");
+            $notifiedInOneHour = $chat["otherNotifiedTime"] ? date_create($chat["otherNotifiedTime"]) > $oneHourAgo : false;
+            $notifiedInOneMinute = $chat["otherNotifiedTime"] ? date_create($chat["otherNotifiedTime"]) > $oneMinuteAgo : false;
+
+            $this->model->update($chat["id"], [
+                "otherNotifiedTime" => date(DATE_ATOM)
+            ], false);
+        } else if ($chat["otherID"] == AuthMiddleware::$person["id"]) {
+            $other = $this->personModel->getById($chat["selfID"], "name, email, fcmToken");
+            $notifiedInOneHour = $chat["selfNotifiedTime"] ? date_create($chat["selfNotifiedTime"]) > $oneHourAgo : false;
+            $notifiedInOneMinute = $chat["selfNotifiedTime"] ? date_create($chat["selfNotifiedTime"]) > $oneMinuteAgo : false;
+
+            $this->model->update($chat["id"], [
+                "selfNotifiedTime" => date(DATE_ATOM)
+            ], false);
+        } else response(NULL, 400);
+
+        $subject = "Chat: " . AuthMiddleware::$person["name"] . " is Waiting For You!";
+        if (!$notifiedInOneHour) {
+            $email = $other["email"];
+            $roomLink = "https://qrid.space/chat/" . $this->params["roomName"];
+
+            $body = "<h2>Your Chatmate is Waiting For You!</h2>
+            <p>Please join the room.</p>
+            <p><a href='" . $roomLink . "'>Click here to join Chat with " . AuthMiddleware::$person["name"] . "</a></p>
+            <br />
+            <p style='color:gray; font-size: 0.9rem;'>If you did not request this, you can safely ignore this email.</p>";
+
+            sendMail($email, $subject, $body, $roomLink, "chat-notify");
+        }
+
+        if (!$notifiedInOneMinute) sendNotification($other["fcmToken"], "Chat Action", $subject, "/chat/{$this->params["roomName"]}");
     }
 }

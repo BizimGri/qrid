@@ -27,6 +27,29 @@ class DataController extends MainController
         $data["personID"] = AuthMiddleware::$person["vID"];
         $data["subDatas"] = $this->subDataModel->getWhere(["dataID" => $data["id"]], "id, subDataTypeID, accessLevelID, sdKey, sdValue");
 
+        if (!empty($data["subDatas"])) {
+            foreach ($data["subDatas"] as $subData) {
+                switch ($subData["subDataTypeID"]) {
+                    case "100":
+                        $data["chat_video"] = true;
+                        $data["chat_audio"] = true;
+                        $data["chat_text"] = true;
+                        break;
+                    case "101":
+                        $data["chat_video"] = true;
+                        break;
+                    case "102":
+                        $data["chat_audio"] = true;
+                        break;
+                    case "103":
+                        $data["chat_text"] = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         unset($data["id"]);
         response($data);
     }
