@@ -62,17 +62,37 @@ class ChatController extends MainController
         else response(NULL, 500);
     }
 
+    public function getLastChats()
+    {
+        $lastChats_self = $this->model->getWhere(["selfID" => AuthMiddleware::$person["id"]], "roomName, otherID, type", "otherNotifiedTime DESC, selfNotifiedTime DESC", 3);
+        $lastChats_other = $this->model->getWhere(["otherID" => AuthMiddleware::$person["id"]], "roomName, selfID, type", "selfNotifiedTime DESC, otherNotifiedTime DESC", 3);
+
+        if (!empty($lastChats_self)) {
+            foreach ($lastChats_self as $key => $value) {
+                $lastChats_self[$key]["other"] = $this->personModel->getById($value["otherID"], "name");
+            }
+        }
+
+        if (!empty($lastChats_other)) {
+            foreach ($lastChats_other as $key => $value) {
+                $lastChats_other[$key]["other"] = $this->personModel->getById($value["selfID"], "name");
+            }
+        }
+
+        response(["self_created" => $lastChats_self, "other_created" => $lastChats_other]);
+    }
+
     public function notifyOther()
     {
         checkRequiredParams(["roomName"], $this->params);
         $oneHourAgo = new DateTime("-1 hour");
-        $oneMinuteAgo = new DateTime("-1 minute");
+        $tenSecondAgo = new DateTime("-10 second");
 
         $chat = $this->model->getWhere(["roomName" => $this->params["roomName"]])[0];
         if ($chat["selfID"] == AuthMiddleware::$person["id"]) {
             $other = $this->personModel->getById($chat["otherID"], "name, email, fcmToken");
             $notifiedInOneHour = $chat["otherNotifiedTime"] ? date_create($chat["otherNotifiedTime"]) > $oneHourAgo : false;
-            $notifiedInOneMinute = $chat["otherNotifiedTime"] ? date_create($chat["otherNotifiedTime"]) > $oneMinuteAgo : false;
+            $notifiedInOneMinute = $chat["otherNotifiedTime"] ? date_create($chat["otherNotifiedTime"]) > $tenSecondAgo : false;
 
             $this->model->update($chat["id"], [
                 "otherNotifiedTime" => date(DATE_ATOM)
@@ -80,7 +100,7 @@ class ChatController extends MainController
         } else if ($chat["otherID"] == AuthMiddleware::$person["id"]) {
             $other = $this->personModel->getById($chat["selfID"], "name, email, fcmToken");
             $notifiedInOneHour = $chat["selfNotifiedTime"] ? date_create($chat["selfNotifiedTime"]) > $oneHourAgo : false;
-            $notifiedInOneMinute = $chat["selfNotifiedTime"] ? date_create($chat["selfNotifiedTime"]) > $oneMinuteAgo : false;
+            $notifiedInOneMinute = $chat["selfNotifiedTime"] ? date_create($chat["selfNotifiedTime"]) > $tenSecondAgo : false;
 
             $this->model->update($chat["id"], [
                 "selfNotifiedTime" => date(DATE_ATOM)

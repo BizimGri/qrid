@@ -44,7 +44,8 @@ return [
                 'getAll'          => ['MetricController', 'getAll']
             ],
             'chat' => [
-                '{id}'            => ['ChatController', 'getRoom']
+                '{id}'            => ['ChatController', 'getRoom'],
+                'recents'         => ['ChatController', 'getLastChats']
             ]
         ],
         'POST' => [
