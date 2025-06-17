@@ -27,10 +27,11 @@ class MainController
         return $vID;
     }
 
-    public function refreshCookie($payloadData, $cookieKey, $logout = false)
+    public function refreshCookie($payloadData, $cookieKey, $logout = false, $expireTime = 86400)
     {
         if (!empty($payloadData)) {
-            $exp = time() + 86400; // Token will be valid for 24 hours
+            $exp = time() + $expireTime; // Token will be valid for 24 hours
+
             $payload = [
                 'id' => $payloadData['id'],
                 "vID" => $payloadData['vID'],
@@ -39,7 +40,7 @@ class MainController
                 'exp' => $exp
             ];
 
-            $jwt = JwtHandler::encode($payload);
+            $jwt = JwtHandler::encode($payload, $expireTime);
         }
 
         $cookieData = [
