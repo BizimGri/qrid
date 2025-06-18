@@ -48,7 +48,7 @@ class ChatController extends MainController
 
         if ($self == $dataOwner) response(NULL, 400, "You cannot craete chat with yourself!");
 
-        $room = $this->model->getWhere(["selfID" => $self, "otherID" => $dataOwner]);
+        $room = $this->model->getWhere(["selfID" => $self, "otherID" => $dataOwner, "type" => $this->params["type"]]);
         if (empty($room)) {
             $room = $this->model->create([
                 "selfID" => $self,
@@ -107,10 +107,23 @@ class ChatController extends MainController
             ], false);
         } else response(NULL, 400);
 
+        switch ($chat["type"]) {
+            case 'a':
+                $chatPath = "audio-chat";
+                break;
+            case 't':
+                $chatPath = "text-chat";
+                break;
+            case 'v':
+            default:
+                $chatPath = "chat";
+                break;
+        }
+        
         $subject = "Chat: " . AuthMiddleware::$person["name"] . " is Waiting For You!";
         if (!$notifiedInOneHour) {
             $email = $other["email"];
-            $roomLink = "https://qrid.space/chat/" . $this->params["roomName"];
+            $roomLink = "https://qrid.space/{$chatPath}/" . $this->params["roomName"];
 
             $body = "<h2>Your Chatmate is Waiting For You!</h2>
             <p>Please join the room.</p>
@@ -121,6 +134,6 @@ class ChatController extends MainController
             sendMail($email, $subject, $body, $roomLink, "chat-notify");
         }
 
-        if (!$notifiedInOneMinute) sendNotification($other["fcmToken"], "Chat Action", $subject, "/chat/{$this->params["roomName"]}");
+        if (!$notifiedInOneMinute) sendNotification($other["fcmToken"], "Chat Action", $subject, "/{$chatPath}/{$this->params["roomName"]}");
     }
 }
