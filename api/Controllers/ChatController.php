@@ -64,8 +64,8 @@ class ChatController extends MainController
 
     public function getLastChats()
     {
-        $lastChats_self = $this->model->getWhere(["selfID" => AuthMiddleware::$person["id"]], "roomName, otherID, type", "otherNotifiedTime DESC, selfNotifiedTime DESC", 3);
-        $lastChats_other = $this->model->getWhere(["otherID" => AuthMiddleware::$person["id"]], "roomName, selfID, type", "selfNotifiedTime DESC, otherNotifiedTime DESC", 3);
+        $lastChats_self = $this->model->getWhere(["selfID" => AuthMiddleware::$person["id"]], "roomName, otherID, type", "lastUpdate DESC", 3);
+        $lastChats_other = $this->model->getWhere(["otherID" => AuthMiddleware::$person["id"]], "roomName, selfID, type", "lastUpdate DESC", 3);
 
         if (!empty($lastChats_self)) {
             foreach ($lastChats_self as $key => $value) {
