@@ -29,9 +29,10 @@ return [
                 '{id}'   => ['DataController', 'getByVID'],         // GET /data/{id}
             ],
             'access' => [
-                'data'   => ['AccessController', 'getData'],         // GET /access/data/{vID}
-                'person'   => ['AccessController', 'getPerson'],     // GET /access/person/{vID}
-                'all'       => ['AccessController', 'getAll'],      // GET /access  
+                'data'       => ['AccessController', 'getData'],                 // GET /access/data/{vID}
+                'person'     => ['AccessController', 'getPerson'],               // GET /access/person/{vID}
+                'all'        => ['AccessController', 'getAll'],                  // GET /access  
+                'permitted'  => ['AccessController', 'getAllPermitted'],    // GET /access  
             ],
             'person' => [
                 'logout'            => ['PersonController', 'logout'],           // GET /person/logout

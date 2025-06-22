@@ -177,6 +177,16 @@ class AccessController extends MainController
         response(["person" => $accessPersonRequests, "data" => $accessDataRequests]);
     }
 
+    public function getAllPermitted()
+    {
+        $permittedDatas = $this->model->getWhere(["personID" => AuthMiddleware::$person["id"], "isApproved" => 1]);
+        foreach ($permittedDatas as $key => $value) {
+            if($value["type"] == "p") $permittedDatas[$key]["person"] = $this->personModel->getWhere(["id" => $value["entityID"]], "name, vID")[0];
+            else if ($value["type"] == "d") $permittedDatas[$key]["data"] = $this->dataModel->getWhere(["id" => $value["entityID"]], "title, vID")[0];
+        }
+        response($permittedDatas);
+    }
+
     public function create()
     {
         checkRequiredParams(["type", "vID"], $this->params);
