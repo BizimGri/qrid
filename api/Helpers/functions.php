@@ -246,7 +246,7 @@ function validateEmail($email): bool
 }
 
 /**
- * Hashes a password using the SHA-256 algorithm.
+ * Hashes a password using PHP's password_hash.
  *
  * @param string $password The password to hash.
  * @return string The hashed password.
@@ -254,11 +254,11 @@ function validateEmail($email): bool
  */
 function hashPassword($password)
 {
-    return hash('sha256', $password);
+    return password_hash($password, PASSWORD_DEFAULT);
 }
 
 /**
- * Verifies a password against a SHA-256 hashed password.
+ * Verifies a password against a hashed password using password_verify.
  *
  * @param string $password The password to verify.
  * @param string $hashedPassword The hashed password to compare against.
@@ -267,7 +267,7 @@ function hashPassword($password)
  */
 function verifyPassword($password, $hashedPassword)
 {
-    return hash('sha256', $password) === $hashedPassword;
+    return password_verify($password, $hashedPassword);
 }
 
 /**

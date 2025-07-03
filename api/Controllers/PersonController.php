@@ -25,7 +25,7 @@ class PersonController extends MainController
             "vID" => $vID,
             "name" => $params["name"] ?? $this->params['name'],
             "email" => $params["email"] ?? $this->params['email'],
-            "password" => hashPassword($params["params"] ?? $this->params['password']),
+            "password" => hashPassword($params["password"] ?? $this->params['password']),
             "encryptionKey" => bin2hex(random_bytes(32))
         ];
         if (!empty($params["emailCode"])) $person["emailCode"] = $params["emailCode"];
