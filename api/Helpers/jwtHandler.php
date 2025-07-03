@@ -24,7 +24,7 @@ class JwtHandler
         return "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
     }
 
-    public static function decode($jwt)
+    public static function decode($jwt, $ignoreExpiration = false)
     {
         $parts = explode(".", $jwt);
         if (count($parts) !== 3) {
@@ -39,7 +39,7 @@ class JwtHandler
         }
 
         $payload = json_decode(self::base64UrlDecode($payload), true);
-        if (isset($payload["exp"]) && $payload["exp"] < time()) {
+        if (isset($payload["exp"]) && $payload["exp"] < time() && !$ignoreExpiration) {
             return false;
         }
 

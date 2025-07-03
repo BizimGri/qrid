@@ -5,6 +5,7 @@ require_once __DIR__ . '/../Helpers/JwtHandler.php';
 class AuthMiddleware
 {
     public static $person;
+    public static $expired = false;
 
     public static function handle()
     {
@@ -20,7 +21,14 @@ class AuthMiddleware
         $token = $_COOKIE['jwt_token'];
         $decoded = JwtHandler::decode($token);
 
-        if (!$decoded) {
+        if (!$decoded && isset($_COOKIE['refresh_token'])) {
+            $decoded = JwtHandler::decode($token, true);
+            if ($decoded) {
+                self::$expired = true;
+            } else {
+                return;
+            }
+        } elseif (!$decoded) {
             return;
         }
 
@@ -37,6 +45,17 @@ class AuthMiddleware
         $decoded = JwtHandler::decode($token);
 
         if (!$decoded) {
+            if (isset($_COOKIE['refresh_token'])) {
+                $decoded = JwtHandler::decode($token, true);
+                if ($decoded) {
+                    self::$expired = true;
+                    self::$person = (array) $decoded;
+                    $requestUri = trim(substr(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), 5), '/');
+                    if ($requestUri === 'person/refresh') {
+                        return;
+                    }
+                }
+            }
             response(NULL, 401, "Unauthorized: Invalid or expired token.");
         }
 
