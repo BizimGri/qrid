@@ -53,6 +53,7 @@ return [
             'person'  => [
                 'register'        => ['PersonController', 'register'],    // POST /person/register
                 'login'           => ['PersonController', 'login'],       // POST /person/login
+                'refresh'        => ['PersonController', 'refreshToken'], // POST /person/refresh
                 'emailLogin'      => ['PersonController', 'loginWithEmail'],
                 'forgot-password' => ['PersonController', 'forgotPassword'] // POST /person/forgot-password
             ],

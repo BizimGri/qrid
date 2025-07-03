@@ -76,6 +76,17 @@ class PersonController extends MainController
         unset($person[0]["password"]);
         $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
 
+        // Generate refresh token and store in DB
+        $refreshToken = bin2hex(random_bytes(32));
+        $this->model->update($person[0]['id'], ['refreshToken' => $refreshToken]);
+        setcookie('refresh_token', $refreshToken, [
+            'expires' => time() + 2592000,
+            'path' => '/',
+            'httponly' => true,
+            'secure' => true,
+            'samesite' => 'None'
+        ]);
+
         if ($cookieStatus) {
             response($person[0], 200, "Login successful.", true);
             if ($person[0]["first_login"] == true) $this->firstLoginMail($this->params["email"], $this->params["password"]);
@@ -136,7 +147,18 @@ class PersonController extends MainController
                     $person[0]["timeDiff"] = $diff;
                     $this->model->update($person[0]["id"], ["emailCode" => null]);
                     $cookieStatus = $this->refreshCookie($person[0], "jwt_token");
-                    if ($cookieStatus) response($person[0], 200, "Login successful.");
+                    if ($cookieStatus) {
+                        $refreshToken = bin2hex(random_bytes(32));
+                        $this->model->update($person[0]['id'], ['refreshToken' => $refreshToken]);
+                        setcookie('refresh_token', $refreshToken, [
+                            'expires' => time() + 2592000,
+                            'path' => '/',
+                            'httponly' => true,
+                            'secure' => true,
+                            'samesite' => 'None'
+                        ]);
+                        response($person[0], 200, "Login successful.");
+                    }
                     else response(NULL, 500, "Internal Server Error");
                 } else response(NULL, 203, "Time of Code has expired!");
             } else {
@@ -147,15 +169,62 @@ class PersonController extends MainController
 
     function logout()
     {
-        $logoutData = ["fcmToken" => NULL];
+        $logoutData = ["fcmToken" => NULL, "refreshToken" => NULL];
         $this->model->update(AuthMiddleware::$person["id"], $logoutData);
         $this->refreshCookie(NULL, "jwt_token", true);
+        setcookie('refresh_token', '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'httponly' => true,
+            'secure' => true,
+            'samesite' => 'None'
+        ]);
         response(NULL, 200, "Logout successful.");
     }
 
     function forgotPassword()
     {
         // TODO: Implement this method
+    }
+
+    function refreshToken()
+    {
+        if (!isset($_COOKIE['refresh_token'])) {
+            response(NULL, 401, 'Unauthorized: Missing refresh token.');
+        }
+
+        $refreshToken = $_COOKIE['refresh_token'];
+
+        $jwtPayload = null;
+        if (isset($_COOKIE['jwt_token'])) {
+            $jwtPayload = JwtHandler::decode($_COOKIE['jwt_token'], true);
+        }
+
+        if ($jwtPayload && isset($jwtPayload['id'])) {
+            $person = $this->model->getWhere([
+                'id' => $jwtPayload['id'],
+                'refreshToken' => $refreshToken
+            ], 'id, vID, name, email');
+        } else {
+            $person = $this->model->getWhere(['refreshToken' => $refreshToken], 'id, vID, name, email');
+        }
+
+        if (!$person) {
+            response(NULL, 401, 'Unauthorized: Invalid refresh token.');
+        }
+
+        $newRefresh = bin2hex(random_bytes(32));
+        $this->model->update($person[0]['id'], ['refreshToken' => $newRefresh]);
+        setcookie('refresh_token', $newRefresh, [
+            'expires' => time() + 2592000,
+            'path' => '/',
+            'httponly' => true,
+            'secure' => true,
+            'samesite' => 'None'
+        ]);
+
+        $this->refreshCookie($person[0], 'jwt_token');
+        response($person[0], 200, 'Token refreshed.');
     }
 
     function profile()
