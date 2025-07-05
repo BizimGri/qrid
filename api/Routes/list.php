@@ -8,7 +8,8 @@ return [
                 'login',
                 'emailLogin',
                 'register',
-                'forgot-password'
+                'forgot-password',
+                'refresh'
             ]
         ],
         'GET' => [
