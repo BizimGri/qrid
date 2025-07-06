@@ -10,3 +10,4 @@ require_once __DIR__ . '/../Controllers/AccessController.php';
 require_once __DIR__ . '/../Controllers/MetricController.php';
 require_once __DIR__ . '/../Controllers/FeedbackController.php';
 require_once __DIR__ . '/../Controllers/ChatController.php';
+require_once __DIR__ . '/../Controllers/CompanyController.php';

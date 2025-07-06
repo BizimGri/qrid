@@ -73,6 +73,9 @@ return [
             'chat' => [
                 'create'       => ['ChatController', 'create'],
                 'notify'       => ['ChatController', 'notifyOther']
+            ],
+            'company' => [
+                'create'       => ['CompanyController', 'create']
             ]
         ],
         'PUT' => [
@@ -88,6 +91,9 @@ return [
             ],
             'access' => [
                 'request'   => ['AccessController', 'approve'],      // PUT /access/{id}
+            ],
+            'company' => [
+                'update'    => ['CompanyController', 'update'] 
             ]
         ],
         'DELETE' => [

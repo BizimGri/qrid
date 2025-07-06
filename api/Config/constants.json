@@ -1,17 +1,25 @@
 {
-    "accessTypes": {
-        "private": "1",
-        "shared": "2",
-        "public": "3"
-    },
-    "accessLevels": {
-        "1": "access_level_1",
-        "2": "access_level_2",
-        "3": "access_level_3",
-        "4": "access_level_4"
-    },
-    "entityTypes": {
-        "data": "d",
-        "person": "p"
-    }
+  "accessTypes": {
+    "private": "1",
+    "shared": "2",
+    "public": "3"
+  },
+  "accessLevels": {
+    "1": "access_level_1",
+    "2": "access_level_2",
+    "3": "access_level_3",
+    "4": "access_level_4"
+  },
+  "entityTypes": {
+    "data": "d",
+    "person": "p"
+  },
+  "companyTypes": {
+    "1": "manufacturing",
+    "2": "services",
+    "3": "trade",
+    "4": "finance",
+    "5": "agriculture_and_livestock",
+    "6": "energy_and_infrastructure"
+  }
 }
