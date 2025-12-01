@@ -12,14 +12,14 @@ function createMailer(): PHPMailer
 {
     $mail = new PHPMailer(true);
     $mail->isSMTP();
-    $mail->Host = 'mail.qrid.space';
+    $mail->Host = 'mail...';
     $mail->SMTPAuth = true;
-    $mail->Username = 'noreply@qrid.space';
-    $mail->Password = 'FdxCy6chCTae36MPxxAP';
+    $mail->Username = '...';
+    $mail->Password = '....';
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = 587;
 
-    $mail->setFrom('noreply@qrid.space', 'QRID | NoReply');
+    $mail->setFrom('...', '... | NoReply');
 
     return $mail;
 }
