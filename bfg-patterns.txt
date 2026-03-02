@@ -1,0 +1,41 @@
+# BFG Patterns for Sensitive Data
+
+This file contains comprehensive regex patterns to detect and mask sensitive data in various formats.
+
+## API Keys
+- `(?i)(?:api[-_]?key|apikey|api_key)[=:\s]?\s*([A-Za-z0-9]{32})`  
+  Matches common API key formats.
+
+## Passwords
+- `(?i)(?:password|passwd|pass)[=:\s]?\s*([A-Za-z0-9!@#$%^&*()_+|~=`{}\[\]:";'<>?,.\-\/\\]{8,})`  
+  Matches password patterns of at least 8 characters.
+
+## Tokens
+- `(?i)(?:token|access_token)[=:\s]?\s*([A-Za-z0-9]{40})`  
+  Matches common token formats, such as JWTs or other authentication tokens.
+
+## Credentials
+- `(?i)(?:username|login|credentials)[=:\s]?\s*([^\s]+)`  
+  Simple match for user credentials.
+
+## Email Addresses
+- `([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})`  
+  Matches standard email formats.
+
+## Phone Numbers
+- `(?:\+?\d{1,3}[-. ]?)?(\(?\d{3}\)?[-. ]?)?\d{3}[-. ]?\d{4}`  
+  Matches international and local phone number formats.
+
+## Private Keys
+- `(?i)(?:private\s*key|rsa|ecdsa)[=:\s]?\s*([A-Za-z0-9+/=]{32,})`  
+  Detects private key formats.
+
+## Other PII
+- `\b\d{3}-?\d{2}-?\d{4}\b`  
+  Matches Social Security Numbers (SSNs).
+
+- `(?i)(?:dob|date\s*of\s*birth)[=:\s]?\s*(\d{4}[-/ ]\d{1,2}[-/ ]\d{1,2})`  
+  Captures the date of birth in various formats.
+
+## Note
+- Always ensure proper handling of sensitive information to comply with relevant data protection regulations.
